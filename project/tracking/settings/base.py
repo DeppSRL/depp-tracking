@@ -198,10 +198,15 @@ DJANGO_APPS = (
     # Admin panel and documentation:
     'django.contrib.admin',
     # 'django.contrib.admindocs',
+
+    # extensions
+    'django_extensions',
+
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
+    'tracking',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -211,7 +216,7 @@ INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
 
 ########## AUTHENTICATION CONFIGURATION
 AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
+    'django.contrib.auth.backends.ModelBackend', # default
 )
 ########## END AUTHENTICATION CONFIGURATION
 
@@ -276,3 +281,6 @@ INSTALLED_APPS += (
 # Don't need to use South when setting up a test database.
 SOUTH_TESTS_MIGRATE = False
 ########## END SOUTH CONFIGURATION
+
+# anonymous user id for django guardian
+ANONYMOUS_USER_ID = -1

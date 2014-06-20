@@ -4,10 +4,6 @@
 # Bleeding edge Django
 Django>=1.6,<1.7
 
-# shell_plus, ipython, 
-django-extensions
-ipython
-
 # Configuration
 django-environ>=0.3
 
@@ -17,3 +13,8 @@ django-braces
 # Models
 South
 django-model-utils
+
+# extensions and tools
+django-extensions
+ipython
+django-autoslug
