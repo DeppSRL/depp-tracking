@@ -3,4 +3,4 @@
 -r common.txt
 
 # For the persistance stores
-psycopg2
+# psycopg2
