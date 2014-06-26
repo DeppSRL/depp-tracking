@@ -21,7 +21,7 @@ class ActivityAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(ActivityAdmin, self).queryset(request)
-        if 'project manager' in self._get_user_groups(request) or request.user.is_superuser:
+        if request.user.is_superuser:
             return qs
         return qs.filter(owner=request.user.employee)
 
