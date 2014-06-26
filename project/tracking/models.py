@@ -6,15 +6,30 @@ from .behaviors import Dateframeable
 
 __author__ = 'guglielmo'
 
-class Employee(models.Model):
+class Worker(models.Model):
+    TYPES = Choices(
+        (0, 'associate', _('Associate')),
+        (1, 'collaborator', _('Collaborator or employee')),
+        (2, 'external', _('External resource')),
+    )
+
+    CONTRACTS = Choices(
+        (0, 'indeterminato', _('Fully employee')),
+        (1, 'collaboratore', _('Collaboration to a project')),
+        (1, 'partitaiva', _('External consultancy')),
+    )
+
     user = models.OneToOneField(User)
+    worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True, help_text=_("The type of worker"))
+    contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True, help_text=_("The type of contract between the worker and the company"))
+    time_perc = models.IntegerField(_('time percentage'), blank=True, null=True, help_text=_("Time percentage (100% = full time)"))
 
     def __unicode__(self):
         return self.user.username
 
     class Meta:
-        verbose_name = _("Employee")
-        verbose_name_plural = _("Employees")
+        verbose_name = _("Worker")
+        verbose_name_plural = _("Workers")
 
 
 class Project(Dateframeable, models.Model):
@@ -40,7 +55,7 @@ class Project(Dateframeable, models.Model):
     description = models.TextField(_("description"), help_text=_("An extensive description of the project"))
     resources = models.TextField(_("resources"), help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
     customer = models.CharField(_("customer"), max_length=128, help_text=_("The identifier of the customer"))
-    managers = models.ManyToManyField(Employee, related_name='projects', help_text=_("The manager(s) of this project"))
+    managers = models.ManyToManyField(Worker, related_name='projects', help_text=_("The manager(s) of this project"))
     project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_("Whether the project is an ongoing activity or it has a start and an end date"))
     phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True, help_text=_("The status of advancement of the project"))
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True, help_text=_("Whether the project is active or closed"))
@@ -67,9 +82,9 @@ class Activity(models.Model):
         (9, 'other', _('Other')),
     )
 
-    employee = models.ForeignKey(Employee, related_name='assigned_activities')
+    worker = models.ForeignKey(Worker, related_name='assigned_activities')
     project = models.ForeignKey(Project)
-    owner = models.ForeignKey(Employee, related_name='own_activities')
+    owner = models.ForeignKey(Worker, related_name='own_activities')
     date = models.DateField(auto_now=True, help_text=_("Pick up the exact date of the activity."))
     activity_type = models.IntegerField(choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
     description = models.CharField(_("description"), max_length=256, help_text=_("A very brief description of the activity (max 256 chars)."))
