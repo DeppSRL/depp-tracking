@@ -69,7 +69,7 @@ DATABASES = {
 TIME_ZONE = 'Europe/Rome'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = 'it-IT'
+LANGUAGE_CODE = 'en-US'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
@@ -201,6 +201,7 @@ DJANGO_APPS = (
 
     # extensions
     'django_extensions',
+    'recurrence',
 
 )
 

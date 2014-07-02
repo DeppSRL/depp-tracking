@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
+import recurrence.fields
 from .behaviors import Dateframeable
 
 __author__ = 'guglielmo'
@@ -68,9 +69,9 @@ class Project(Dateframeable, models.Model):
         verbose_name_plural = _("Projects")
 
 
-class Activity(models.Model):
+class BaseActivity(models.Model):
     TYPES = Choices(
-        (0, 'meeting', _('Meeting the customer')),
+        (0, 'meeting', _('Meeting the client')),
         (1, 'analysis', _('Analysis')),
         (2, 'design', _('Design')),
         (3, 'development', _('Development or debugging')),
@@ -79,16 +80,25 @@ class Activity(models.Model):
         (6, 'management', _('Project management')),
         (7, 'graphic', _('Graphic design')),
         (8, 'marketing', _('Marketing and commercial activities')),
-        (9, 'other', _('Other')),
+        (9, 'internal meeting', _('Internal meeting')),
+        (10, 'other', _('Other')),
     )
 
-    worker = models.ForeignKey(Worker, related_name='assigned_activities')
     project = models.ForeignKey(Project)
-    owner = models.ForeignKey(Worker, related_name='own_activities')
-    date = models.DateField(auto_now=True, help_text=_("Pick up the exact date of the activity."))
     activity_type = models.IntegerField(choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
     description = models.CharField(_("description"), max_length=256, help_text=_("A very brief description of the activity (max 256 chars)."))
     hours = models.DecimalField(_('Hours worked'), max_digits=3, decimal_places=1)
+
+    def __unicode__(self):
+        return u"{0}".format(self.description)
+
+    class Meta:
+        abstract = True
+
+class Activity(BaseActivity):
+    worker = models.ForeignKey(Worker, related_name='assigned_activities')
+    owner = models.ForeignKey(Worker, related_name='own_activities')
+    activity_date = models.DateField(help_text=_("Pick up the exact date of the activity."))
 
     def __unicode__(self):
         return u"{0} ({1}h)".format(self.description, self.hours)
@@ -96,3 +106,15 @@ class Activity(models.Model):
     class Meta:
         verbose_name = _("Activity")
         verbose_name_plural = _("Activities")
+
+
+class RecurringActivity(BaseActivity):
+    worker = models.ForeignKey(Worker, related_name='assigned_recurring_activities')
+    owner = models.ForeignKey(Worker, related_name='own_recurring_activities')
+    start_date = models.DateField(blank=True, null=True, help_text=_("When the activity started."))
+    end_date = models.DateField(blank=True, null=True, help_text=_("When the activity will end."))
+    recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("Recurring activity")
+        verbose_name_plural = _("Recurring activities")
