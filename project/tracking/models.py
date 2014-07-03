@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -24,6 +24,19 @@ class Worker(models.Model):
     worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True, help_text=_("The type of worker"))
     contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True, help_text=_("The type of contract between the worker and the company"))
     time_perc = models.IntegerField(_('time percentage'), blank=True, null=True, help_text=_("Time percentage (100% = full time)"))
+
+    def is_manager(self):
+        g = Group.objects.get(name__iexact='manager')
+        return g in self.user.groups.all()
+
+    def is_project_manager(self):
+        g = Group.objects.get(name__iexact='project manager')
+        return g in self.user.groups.all()
+
+    def is_superuser(self):
+        return self.user.is_superuser
+
+
 
     def __unicode__(self):
         return self.user.username
@@ -56,7 +69,8 @@ class Project(Dateframeable, models.Model):
     description = models.TextField(_("description"), help_text=_("An extensive description of the project"))
     resources = models.TextField(_("resources"), help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
     customer = models.CharField(_("customer"), max_length=128, help_text=_("The identifier of the customer"))
-    managers = models.ManyToManyField(Worker, related_name='projects', help_text=_("The manager(s) of this project"))
+    managers = models.ManyToManyField(Worker, related_name='manager_projects', help_text=_("The manager(s) of this project"))
+    workers = models.ManyToManyField(Worker, related_name='worker_projects', help_text=_("The worker(s) of this project"))
     project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_("Whether the project is an ongoing activity or it has a start and an end date"))
     phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True, help_text=_("The status of advancement of the project"))
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True, help_text=_("Whether the project is active or closed"))

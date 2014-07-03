@@ -1,12 +1,24 @@
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms import ModelForm, MultipleChoiceField
+from django.db.models import Q
+from django import forms
+from django.contrib.admin import widgets, helpers
 from .models import Project, Worker, Activity, RecurringActivity
 
 __author__ = 'guglielmo'
 
-def _get_user_groups(request):
-    return [g.lower() for g in request.user.groups.values_list('name', flat=True)]
+
+class ProjectAdminForm(forms.ModelForm):
+    """
+    Custom form for Project administration: managers and workers widgets
+    are changed to more user-friendly checkboxes.
+    """
+    class Meta:
+        model = Project
+        widgets = {
+          'managers':forms.CheckboxSelectMultiple,
+          'workers':forms.CheckboxSelectMultiple
+        }
 
 class WorkerAdmin(admin.ModelAdmin):
     pass
@@ -15,22 +27,46 @@ class WorkerAdmin(admin.ModelAdmin):
 class ProjectAdmin(admin.ModelAdmin):
     search_fields = ['^description']
     list_filter = ('phase', 'status', 'project_type')
+    form = ProjectAdminForm
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        """
+        Managers selections is filtered
+        
+        :param db_field:
+        :param request:
+        :param kwargs:
+        :return:
+        """
+        field = super(ProjectAdmin, self).formfield_for_manytomany(
+            db_field, request, **kwargs
+        )
+        if db_field.name == 'managers':
+            field.queryset = field.queryset.filter(
+                Q(user__groups__name__iexact='manager') |
+                Q(user__groups__name__iexact='project manager')
+            ).distinct()
+        else:
+            pass
+
+        return field
 
     def get_queryset(self, request):
         """
-        project managers can only list projects they manage
+        project managers or workers can only list 'their' projects
 
         superusers and global managers see them all
         :param request:
         :return:
         """
         qs = super(ProjectAdmin, self).queryset(request)
-        if request.user.is_superuser or 'manager' in _get_user_groups(request):
+        if request.user.is_superuser or request.user.worker.is_manager():
             return qs
-        return qs.filter(managers=request.user.worker)
+        return qs.filter(Q(managers=request.user.worker) | Q(workers=request.user.worker))
 
 
 class BaseActivityAdmin(admin.ModelAdmin):
+
     def get_queryset(self, request):
         qs = super(BaseActivityAdmin, self).queryset(request)
         if request.user.is_superuser:
@@ -39,10 +75,11 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
     def get_list_filter(self, request):
         lf = super(BaseActivityAdmin, self).get_list_filter(request)[:]
-        if 'project manager' not in _get_user_groups(request) and not request.user.is_superuser:
+        if request.user.worker.is_project_manager() and not request.user.is_superuser:
             if 'worker' in lf:
                 lf.remove('worker')
         return lf
+
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'owner' or db_field.name == 'worker':
@@ -55,8 +92,6 @@ class BaseActivityAdmin(admin.ModelAdmin):
             db_field, request, **kwargs
         )
 
-        user_groups_names = _get_user_groups(request)
-
         # the logged user is always the owner of the activity
         # only superusers can change that
         if db_field.name == 'owner':
@@ -65,23 +100,23 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
         # employees can only add their own activities
         if db_field.name == 'worker':
-            if 'manager' not in user_groups_names \
-                    and'project manager' not in user_groups_names \
+            if not request.user.worker.is_manager() \
+                    and not request.user.worker.is_project_manager() \
                     and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(id=request.user.worker.id)
 
-        # employees can only add their own activities
+        # employees can only see projects they work in or manage
         if db_field.name == 'project':
-            if 'manager' not in user_groups_names and not request.user.is_superuser:
-                field.queryset = field.queryset.filter(managers=request.user.worker)
-
+            if request.user.worker.is_manager() and not request.user.is_superuser:
+                field.queryset = field.queryset.filter(
+                    Q(managers=request.user.worker) | Q(workers=request.user.worker)
+                )
         return field
 
 class ActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
     search_fields = ['description',]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
-
 
 class RecurringActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'recurrences']
