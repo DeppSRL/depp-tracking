@@ -203,6 +203,8 @@ DJANGO_APPS = (
     'django_extensions',
     'recurrence',
 
+    'rest_framework',
+
 )
 
 # Apps specific for this project go here.
@@ -283,5 +285,17 @@ INSTALLED_APPS += (
 SOUTH_TESTS_MIGRATE = False
 ########## END SOUTH CONFIGURATION
 
-# anonymous user id for django guardian
-ANONYMOUS_USER_ID = -1
+########## REST_FRAMEWORK CONFIGURATION
+REST_FRAMEWORK = {
+    # Use hyperlinked styles by default.
+    # Only used if the `serializer_class` attribute is not set on a view.
+    'DEFAULT_MODEL_SERIALIZER_CLASS':
+        'rest_framework.serializers.HyperlinkedModelSerializer',
+
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissions'
+    ]
+}
+########## END REST_FRAMEWORK CONFIGURATION

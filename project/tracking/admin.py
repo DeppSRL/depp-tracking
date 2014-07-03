@@ -32,7 +32,7 @@ class ProjectAdmin(admin.ModelAdmin):
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         """
         Managers selections is filtered
-        
+
         :param db_field:
         :param request:
         :param kwargs:
