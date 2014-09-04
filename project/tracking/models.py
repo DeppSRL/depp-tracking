@@ -101,7 +101,7 @@ class BaseActivity(models.Model):
     project = models.ForeignKey(Project)
     activity_type = models.IntegerField(choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
     description = models.CharField(_("description"), max_length=256, help_text=_("A very brief description of the activity (max 256 chars)."))
-    hours = models.DecimalField(_('Hours worked'), max_digits=3, decimal_places=1)
+    hours = models.DecimalField(_('Hours worked'), max_digits=3, decimal_places=1, help_text=_("Number of hours worked, can be a decimal"))
 
     def __unicode__(self):
         return u"{0}".format(self.description)
@@ -121,6 +121,17 @@ class Activity(BaseActivity):
         verbose_name = _("Activity")
         verbose_name_plural = _("Activities")
 
+class WeeklyActivity(BaseActivity):
+    worker = models.ForeignKey(Worker, related_name='assigned_weekly_activities')
+    owner = models.ForeignKey(Worker, related_name='own_weekly_activities')
+    week = models.CharField(max_length=7, help_text=_("The week"))
+
+    def __unicode__(self):
+        return u"{0} ({1}h)".format(self.description, self.hours)
+
+    class Meta:
+        verbose_name = _("Weekly activity")
+        verbose_name_plural = _("Weekly activities")
 
 class RecurringActivity(BaseActivity):
     worker = models.ForeignKey(Worker, related_name='assigned_recurring_activities')

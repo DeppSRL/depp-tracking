@@ -69,7 +69,7 @@ DATABASES = {
 TIME_ZONE = 'Europe/Rome'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = 'en-US'
+LANGUAGE_CODE = 'it-IT'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
@@ -299,3 +299,5 @@ REST_FRAMEWORK = {
     ]
 }
 ########## END REST_FRAMEWORK CONFIGURATION
+
+PAST_WEEKS = 7

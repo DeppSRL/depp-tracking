@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django import forms
-from django.contrib.admin import widgets, helpers
-from .models import Project, Worker, Activity, RecurringActivity
+from isoweek import Week
+from model_utils import Choices
+from .models import Project, Worker, Activity, RecurringActivity, WeeklyActivity
 
 __author__ = 'guglielmo'
 
@@ -122,7 +124,26 @@ class RecurringActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'recurrences']
     list_filter = ['worker', 'project', 'activity_type', 'project__status']
 
+
+class WeeklyAdminForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        w = Week.thisweek()
+        WEEKS = [(w.isoformat(), "this week")] + [((w - i).isoformat(), (w-i).monday().strftime("from %B %d")) for i in range(1, settings.PAST_WEEKS)]
+        super(WeeklyAdminForm, self).__init__(*args, **kwargs)
+
+        self.fields['week'].widget = forms.Select(choices = WEEKS)
+
+    class Meta:
+        model = WeeklyActivity
+
+class WeeklyActivityAdmin(BaseActivityAdmin):
+    list_display = ['__unicode__', 'worker', 'project', 'week']
+    list_filter = ['worker', 'project', 'activity_type', 'project__status']
+    form = WeeklyAdminForm
+
 admin.site.register(Worker, WorkerAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Activity, ActivityAdmin)
 admin.site.register(RecurringActivity, RecurringActivityAdmin)
+admin.site.register(WeeklyActivity, WeeklyActivityAdmin)
