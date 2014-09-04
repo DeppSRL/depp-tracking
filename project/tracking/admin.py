@@ -3,8 +3,9 @@ from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django import forms
+from django.utils.translation import ugettext_lazy as _
+import locale
 from isoweek import Week
-from model_utils import Choices
 from .models import Project, Worker, Activity, RecurringActivity, WeeklyActivity
 
 __author__ = 'guglielmo'
@@ -128,8 +129,10 @@ class RecurringActivityAdmin(BaseActivityAdmin):
 class WeeklyAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
+        locale.setlocale(locale.LC_ALL, "{0}.UTF-8".format(settings.LANGUAGE_CODE.replace("-","_")))
+        from_word = _("from")
         w = Week.thisweek()
-        WEEKS = [(w.isoformat(), "this week")] + [((w - i).isoformat(), (w-i).monday().strftime("from %B %d")) for i in range(1, settings.PAST_WEEKS)]
+        WEEKS = [(w.isoformat(), _("this week"))] + [((w - i).isoformat(), _("from") + (w-i).monday().strftime(" %d %B")) for i in range(1, settings.PAST_WEEKS)]
         super(WeeklyAdminForm, self).__init__(*args, **kwargs)
 
         self.fields['week'].widget = forms.Select(choices = WEEKS)

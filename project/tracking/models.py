@@ -98,10 +98,10 @@ class BaseActivity(models.Model):
         (10, 'other', _('Other')),
     )
 
-    project = models.ForeignKey(Project)
-    activity_type = models.IntegerField(choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
+    project = models.ForeignKey(Project, verbose_name=_("project"))
+    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
     description = models.CharField(_("description"), max_length=256, help_text=_("A very brief description of the activity (max 256 chars)."))
-    hours = models.DecimalField(_('Hours worked'), max_digits=3, decimal_places=1, help_text=_("Number of hours worked, can be a decimal"))
+    hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1, help_text=_("Number of hours worked, can be a decimal"))
 
     def __unicode__(self):
         return u"{0}".format(self.description)
@@ -110,9 +110,9 @@ class BaseActivity(models.Model):
         abstract = True
 
 class Activity(BaseActivity):
-    worker = models.ForeignKey(Worker, related_name='assigned_activities')
-    owner = models.ForeignKey(Worker, related_name='own_activities')
-    activity_date = models.DateField(help_text=_("Pick up the exact date of the activity."))
+    worker = models.ForeignKey(Worker, verbose_name=_("worker"),  related_name='assigned_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_activities')
+    activity_date = models.DateField(_("activity date"), help_text=_("Pick up the exact date of the activity."))
 
     def __unicode__(self):
         return u"{0} ({1}h)".format(self.description, self.hours)
@@ -122,9 +122,9 @@ class Activity(BaseActivity):
         verbose_name_plural = _("Activities")
 
 class WeeklyActivity(BaseActivity):
-    worker = models.ForeignKey(Worker, related_name='assigned_weekly_activities')
-    owner = models.ForeignKey(Worker, related_name='own_weekly_activities')
-    week = models.CharField(max_length=7, help_text=_("The week"))
+    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_weekly_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_weekly_activities')
+    week = models.CharField(_("week"), max_length=7, help_text=_("The week"))
 
     def __unicode__(self):
         return u"{0} ({1}h)".format(self.description, self.hours)
@@ -134,11 +134,11 @@ class WeeklyActivity(BaseActivity):
         verbose_name_plural = _("Weekly activities")
 
 class RecurringActivity(BaseActivity):
-    worker = models.ForeignKey(Worker, related_name='assigned_recurring_activities')
-    owner = models.ForeignKey(Worker, related_name='own_recurring_activities')
-    start_date = models.DateField(blank=True, null=True, help_text=_("When the activity started."))
-    end_date = models.DateField(blank=True, null=True, help_text=_("When the activity will end."))
-    recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
+    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_recurring_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_recurring_activities')
+    start_date = models.DateField(_("start date"), blank=True, null=True, help_text=_("When the activity started."))
+    end_date = models.DateField(_("end_date"), blank=True, null=True, help_text=_("When the activity will end."))
+    recurrences = recurrence.fields.RecurrenceField(_("recurrences"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("Recurring activity")

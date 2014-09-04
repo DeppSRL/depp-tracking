@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-04 18:25+0200\n"
+"POT-Creation-Date: 2014-09-04 19:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: behaviors.py:52
+#: admin.py:133 admin.py:135
+msgid "from"
+msgstr "dal"
+
+#: admin.py:135
+msgid "this week"
+msgstr "questa settimana"
+
+#: behaviors.py:52 models.py:139
 msgid "start date"
 msgstr "data iniziale"
 
@@ -27,9 +35,8 @@ msgid ""
 "The date when the validity of the item starts. Partial dates may be entered "
 "(2014-06)."
 msgstr ""
-"Data di inizio della validità dell'item. Si possono usare date parziali"
-"(2014-06)."
-
+"Data di inizio della validità dell'item. Si possono usare date "
+"parziali(2014-06)."
 
 #: behaviors.py:57
 msgid "end date"
@@ -40,8 +47,8 @@ msgid ""
 "The date when the validity of the item ends. Partial dates may be entered "
 "(2014-06)."
 msgstr ""
-"Data di fine della validità dell'item. Si possono usare date parziali"
-"(2014-06)."
+"Data di fine della validità dell'item. Si possono usare date "
+"parziali(2014-06)."
 
 #: behaviors.py:71
 msgid "creation time"
@@ -258,11 +265,19 @@ msgstr "Attività commerciali e di marketing"
 
 #: models.py:97
 msgid "Internal meeting"
-msgstr ""
+msgstr "Riunione interna"
 
 #: models.py:98
 msgid "Other"
 msgstr "Altro"
+
+#: models.py:101
+msgid "project"
+msgstr "progetto"
+
+#: models.py:102
+msgid "activity type"
+msgstr "tipo attività"
 
 #: models.py:102
 msgid "Select the type of activity. Don't be picky."
@@ -273,12 +288,24 @@ msgid "A very brief description of the activity (max 256 chars)."
 msgstr "Una descrizione sintetica dell'attività (massimo 256 caratteri)."
 
 #: models.py:104
-msgid "Hours worked"
-msgstr "Ore lavorate"
+msgid "hours worked"
+msgstr "ore lavorate"
 
 #: models.py:104
 msgid "Number of hours worked, can be a decimal"
 msgstr "Numero di ore lavorate (può essere decimale)"
+
+#: models.py:113 models.py:125 models.py:137
+msgid "worker"
+msgstr "lavoratore"
+
+#: models.py:114 models.py:126 models.py:138
+msgid "owner"
+msgstr "proprietario"
+
+#: models.py:115
+msgid "activity date"
+msgstr "data attività"
 
 #: models.py:115
 msgid "Pick up the exact date of the activity."
@@ -291,6 +318,10 @@ msgstr "Attività"
 #: models.py:122
 msgid "Activities"
 msgstr "Attività"
+
+#: models.py:127
+msgid "week"
+msgstr "settimana"
 
 #: models.py:127
 msgid "The week"
@@ -309,8 +340,16 @@ msgid "When the activity started."
 msgstr "Quando l'attività inizia"
 
 #: models.py:140
+msgid "end_date"
+msgstr "data finale"
+
+#: models.py:140
 msgid "When the activity will end."
 msgstr "Quando l'attività finisce"
+
+#: models.py:141
+msgid "recurrences"
+msgstr "ricorrenze"
 
 #: models.py:144
 msgid "Recurring activity"
@@ -326,7 +365,7 @@ msgstr "Il mio profilo"
 
 #: templates/base.html:41
 msgid "Logout"
-msgstr ""
+msgstr "Esci"
 
 #: templates/base.html:43
 msgid "Sign Up"
@@ -334,7 +373,7 @@ msgstr "Registrazione"
 
 #: templates/base.html:44
 msgid "Log In"
-msgstr ""
+msgstr "Entra"
 
 #: templates/admin/base_site.html:4 templates/admin/base_site.html.py:7
 msgid "DEPP Activity tracking system"
