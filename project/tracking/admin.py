@@ -37,7 +37,7 @@ class ProjectAdmin(admin.ModelAdmin):
     def report_url(self, obj):
         return u'<a href="/report-project/%s.csv">rapporto attività per %s</a>' % (obj.identification_code, obj.identification_code)
 
-    search_fields = ['^description']
+    search_fields = ['^description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')
     list_display = ('__unicode__', 'report_url')
     form = ProjectAdminForm
@@ -79,7 +79,7 @@ class ProjectAdmin(admin.ModelAdmin):
         qs = super(ProjectAdmin, self).queryset(request)
         if request.user.is_superuser or request.user.worker.is_manager():
             return qs
-        return qs.filter(Q(managers=request.user.worker) | Q(workers=request.user.worker))
+        return qs.filter(Q(managers=request.user.worker) | Q(workers=request.user.worker)).distinct()
 
 
 class BaseActivityAdmin(admin.ModelAdmin):
