@@ -1,3 +1,4 @@
+# coding=utf-8
 from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
@@ -24,13 +25,26 @@ class ProjectAdminForm(forms.ModelForm):
         }
 
 class WorkerAdmin(admin.ModelAdmin):
-    pass
+    def report_url(self, obj):
+        return u'<a href="/report-worker/%s.csv">rapporto attività per %s</a>' % (obj.user.username, obj.user.username)
+
+    report_url.allow_tags = True
+    report_url.short_description = "Link ai report"
+    list_display = ('__unicode__', 'report_url')
 
 
 class ProjectAdmin(admin.ModelAdmin):
+    def report_url(self, obj):
+        return u'<a href="/report-project/%s.csv">rapporto attività per %s</a>' % (obj.identification_code, obj.identification_code)
+
     search_fields = ['^description']
     list_filter = ('phase', 'status', 'project_type')
+    list_display = ('__unicode__', 'report_url')
     form = ProjectAdminForm
+    report_url.allow_tags = True
+    report_url.short_description = "Link ai report"
+
+
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         """

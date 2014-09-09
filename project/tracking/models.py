@@ -206,6 +206,7 @@ class HoursDict(OrderedDict):
                 if a.count():
 
                     # extract dates range (from-to), as datetime
+                    # extraction is limited to current datetime
                     a_dates_limits = a.aggregate(from_date=Min('start_date'), to_date=Max('end_date'))
                     from_date = parse(a_dates_limits['from_date'].strftime("%Y-%m-%d"))
                     to_date = parse(a_dates_limits['to_date'].strftime("%Y-%m-%d"))
