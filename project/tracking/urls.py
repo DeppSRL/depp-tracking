@@ -10,7 +10,8 @@ from django.views.generic import TemplateView, RedirectView
 # load admin modules
 from django.contrib import admin
 
-from .views import UserViewSet, GroupViewSet, WorkerViewSet, ProjectViewSet, ActivityViewSet
+from .views import UserViewSet, GroupViewSet, WorkerViewSet, ProjectViewSet, ActivityViewSet, WorkerCSVView, \
+    ProjectCSVView, OverviewCSVView
 
 admin.autodiscover()
 
@@ -32,7 +33,14 @@ urls = (
 
     # api auth
     url(r'^api/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    # csv per worker
+    url(r'^report-worker/(?P<worker>.+).csv$', WorkerCSVView.as_view(), name='worker_csv'),
+    # csv per project
+    url(r'^report-project/(?P<project>.+).csv$', ProjectCSVView.as_view(), name='project_csv'),
+    # csv overview
+    url(r'^report-overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
 )
 urlpatterns = patterns('', *urls)
 

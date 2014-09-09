@@ -1,6 +1,15 @@
+# coding=utf-8
+from collections import OrderedDict
+import datetime
+import dateutil
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+from dateutil.rrule import rrule, MONTHLY
 from django.contrib.auth.models import User, Group
-from django.db import models
+from django.db import models, connections
+from django.db.models import Sum, Min, Max
 from django.utils.translation import ugettext_lazy as _
+from isoweek import Week
 from model_utils import Choices
 import recurrence.fields
 from .behaviors import Dateframeable
@@ -136,10 +145,102 @@ class WeeklyActivity(BaseActivity):
 class RecurringActivity(BaseActivity):
     worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_recurring_activities')
     owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_recurring_activities')
-    start_date = models.DateField(_("start date"), blank=True, null=True, help_text=_("When the activity started."))
-    end_date = models.DateField(_("end_date"), blank=True, null=True, help_text=_("When the activity will end."))
+    start_date = models.DateField(_("start date"), help_text=_("When the activity started."))
+    end_date = models.DateField(_("end_date"), help_text=_("When the activity will end."))
     recurrences = recurrence.fields.RecurrenceField(_("recurrences"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("Recurring activity")
         verbose_name_plural = _("Recurring activities")
+
+
+class HoursDict(OrderedDict):
+
+    def __init__(self, *args, **kwargs):
+        """
+        Build and return a HoursDict instance, containing all activities,
+        already computed by months.
+        """
+        super(HoursDict, self).__init__(*args, **kwargs)
+
+        conns = connections[Activity.objects.db]
+        workers = Worker.objects.all()
+
+        for w in workers:
+            wid = w.user.username
+            self[wid] = OrderedDict()
+            for p in w.worker_projects.all():
+                pid = p.identification_code
+                self[wid][pid] = OrderedDict()
+
+                #
+                # computing hours monthly breakdowns
+                #
+
+                # simple activities
+                a = Activity.objects.filter(worker=w, project=p)
+                a_hours = a.extra(
+                    {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
+                ).values('month').annotate(hsum=Sum('hours'))
+                for ah in a_hours:
+                    self[wid][pid][ah['month']] = ah['hsum']
+
+
+                # weekly activities
+                a = WeeklyActivity.objects.filter(
+                    worker=w, project=p
+                ).order_by('week')
+                for aw in a:
+                    # I choose to assign wednesday's month as the week month (ad arbitrium)
+                    month = Week.fromstring(aw.week).wednesday().strftime("%Y-%m-01")
+                    if month not in self[wid][pid]:
+                        self[wid][pid][month] = 0
+                    self[wid][pid][month] += aw.hours
+
+
+                # recurring activities
+                a = RecurringActivity.objects.filter(
+                    worker=w, project=p
+                ).order_by('start_date')
+
+                if a.count():
+
+                    # extract dates range (from-to), as datetime
+                    a_dates_limits = a.aggregate(from_date=Min('start_date'), to_date=Max('end_date'))
+                    from_date = parse(a_dates_limits['from_date'].strftime("%Y-%m-%d"))
+                    to_date = parse(a_dates_limits['to_date'].strftime("%Y-%m-%d"))
+                    if to_date > datetime.datetime.now():
+                        to_date = datetime.datetime.now()
+
+                    # generate all steps, month by month, with pre- and after- intervals
+                    d_months = list(
+                        rrule(
+                            MONTHLY, dtstart=parse(from_date.strftime("%Y-%m-01"))
+                        ).between(from_date, to_date)
+                    )
+                    if from_date < d_months[0]:
+                        d_months.insert(0, from_date)
+                    if to_date > d_months[-1]:
+                        d_months.append(to_date)
+
+                    # for each month interval, the hours
+                    # worked on all activities are summed
+                    for i, d_month in enumerate(d_months[:-1]):
+                        month = d_month.strftime("%Y-%m-01")
+                        for ar in a:
+                            n_recurrences = len(
+                                ar.recurrences.to_dateutil_rruleset(
+                                  dtstart=d_month
+                                ).between(
+                                    d_month,
+                                    d_months[i+1],
+                                    inc=False
+                                )
+                            )
+                            if month not in self[wid][pid]:
+                                self[wid][pid][month] = 0
+                            self[wid][pid][month] += ar.hours * n_recurrences
+
+                # re-sort ordered dict, on month key (improve readability)
+                sd = OrderedDict(sorted(self[wid][pid].items(), key=lambda t: t[0]))
+                self[wid][pid] = sd
