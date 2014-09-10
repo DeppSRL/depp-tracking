@@ -219,10 +219,14 @@ class HoursDict(OrderedDict):
                             MONTHLY, dtstart=parse(from_date.strftime("%Y-%m-01"))
                         ).between(from_date, to_date)
                     )
-                    if from_date < d_months[0]:
-                        d_months.insert(0, from_date)
-                    if to_date > d_months[-1]:
+
+                    if not d_months:
                         d_months.append(to_date)
+                    else:
+                        if from_date < d_months[0]:
+                            d_months.insert(0, from_date)
+                        if to_date > d_months[-1]:
+                            d_months.append(to_date)
 
                     # for each month interval, the hours
                     # worked on all activities are summed
