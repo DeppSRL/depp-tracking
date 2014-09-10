@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -26,7 +27,8 @@ class ProjectAdminForm(forms.ModelForm):
 
 class WorkerAdmin(admin.ModelAdmin):
     def report_url(self, obj):
-        return u'<a href="/report-worker/%s.csv">rapporto attività per %s</a>' % (obj.user.username, obj.user.username)
+        url = reverse('worker_csv', args=[obj.user.username,])
+        return u'<a href="{0}">rapporto delle attività</a>'.format(url)
 
     report_url.allow_tags = True
     report_url.short_description = "Link ai report"
@@ -35,7 +37,8 @@ class WorkerAdmin(admin.ModelAdmin):
 
 class ProjectAdmin(admin.ModelAdmin):
     def report_url(self, obj):
-        return u'<a href="/report-project/%s.csv">rapporto attività per %s</a>' % (obj.identification_code, obj.identification_code)
+        url = reverse('project_csv', args=[obj.identification_code,])
+        return u'<a href="{0}">rapporto delle attività</a>'.format(url)
 
     search_fields = ['^description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')

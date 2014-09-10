@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from django.contrib.auth.decorators import login_required
 from rest_framework import routers
 
 from django.conf import settings
@@ -11,7 +12,7 @@ from django.views.generic import TemplateView, RedirectView
 from django.contrib import admin
 
 from .views import UserViewSet, GroupViewSet, WorkerViewSet, ProjectViewSet, ActivityViewSet, WorkerCSVView, \
-    ProjectCSVView, OverviewCSVView
+    ProjectCSVView, OverviewCSVView, ReportsView
 
 admin.autodiscover()
 
@@ -35,12 +36,11 @@ urls = (
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
-    # csv per worker
-    url(r'^report-worker/(?P<worker>.+).csv$', WorkerCSVView.as_view(), name='worker_csv'),
-    # csv per project
-    url(r'^report-project/(?P<project>.+).csv$', ProjectCSVView.as_view(), name='project_csv'),
-    # csv overview
-    url(r'^report-overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
+    # csv reports
+    url(r'^reports/$', login_required(ReportsView.as_view(template_name="reports.html")), name="reports"),
+    url(r'^reports/worker/(?P<worker>.+).csv$', WorkerCSVView.as_view(), name='worker_csv'),
+    url(r'^reports/project/(?P<project>.+).csv$', ProjectCSVView.as_view(), name='project_csv'),
+    url(r'^report/overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
 )
 urlpatterns = patterns('', *urls)
 

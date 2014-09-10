@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-04 19:06+0200\n"
+"POT-Creation-Date: 2014-09-10 11:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:133 admin.py:135
+#: admin.py:150 admin.py:152
 msgid "from"
 msgstr "dal"
 
-#: admin.py:135
+#: admin.py:152
 msgid "this week"
 msgstr "questa settimana"
 
-#: behaviors.py:52 models.py:139
+#: behaviors.py:52 models.py:148
 msgid "start date"
 msgstr "data iniziale"
 
@@ -58,323 +58,323 @@ msgstr "orario di creazione"
 msgid "last modification time"
 msgstr "ultimo orario di modifica"
 
-#: models.py:12
+#: models.py:21
 msgid "Associate"
 msgstr "Socio"
 
-#: models.py:13
+#: models.py:22
 msgid "Collaborator or employee"
 msgstr "Collaboratore o impiegato"
 
-#: models.py:14
+#: models.py:23
 msgid "External resource"
 msgstr "Risorsa esterna"
 
-#: models.py:18
+#: models.py:27
 msgid "Fully employee"
 msgstr "Tempo pieno"
 
-#: models.py:19
+#: models.py:28
 msgid "Collaboration to a project"
 msgstr "Collaborazione a progetto"
 
-#: models.py:20
+#: models.py:29
 msgid "External consultancy"
 msgstr "Consulenza esterna"
 
-#: models.py:24
+#: models.py:33
 msgid "worker type"
 msgstr "tipo di lavoratore"
 
-#: models.py:24
+#: models.py:33
 msgid "The type of worker"
 msgstr "Il tipo di lavoratore"
 
-#: models.py:25
+#: models.py:34
 msgid "contract type"
 msgstr "tipo di contratto"
 
-#: models.py:25
+#: models.py:34
 msgid "The type of contract between the worker and the company"
 msgstr "Il tipo di contratto tra il lavoratore e l'azienda"
 
-#: models.py:26
+#: models.py:35
 msgid "time percentage"
 msgstr "percentuale di tempo"
 
-#: models.py:26
+#: models.py:35
 msgid "Time percentage (100% = full time)"
 msgstr "Percentuale di tempo (100% = tempo pieno)"
 
-#: models.py:45
+#: models.py:54
 msgid "Worker"
 msgstr "Lavoratore"
 
-#: models.py:46
+#: models.py:55
 msgid "Workers"
 msgstr "Lavoratori"
 
-#: models.py:51
+#: models.py:60
 msgid "Draft"
 msgstr "Bozza"
 
-#: models.py:52 models.py:89
+#: models.py:61 models.py:98
 msgid "Analysis"
 msgstr "Analisi"
 
-#: models.py:53 models.py:90
+#: models.py:62 models.py:99
 msgid "Design"
 msgstr "Progettazione"
 
-#: models.py:54
+#: models.py:63
 msgid "Implementation"
 msgstr "Implementazione"
 
-#: models.py:55
+#: models.py:64
 msgid "Maintenance"
 msgstr "Manutenzione"
 
-#: models.py:56
+#: models.py:65
 msgid "Complete"
 msgstr "Completa"
 
-#: models.py:59
+#: models.py:68
 msgid "Ongoing activity"
 msgstr "Attività ricorrente"
 
-#: models.py:60
+#: models.py:69
 msgid "Date framed activity"
 msgstr "Attività limitata nel tempo"
 
-#: models.py:63
+#: models.py:72
 msgid "Closed"
 msgstr "Chiuso"
 
-#: models.py:64
+#: models.py:73
 msgid "Active"
 msgstr "Attivo"
 
-#: models.py:67
+#: models.py:76
 msgid "name"
 msgstr "nome"
 
-#: models.py:67
+#: models.py:76
 msgid "A project's name"
 msgstr "Il nome di un progetto"
 
-#: models.py:68
+#: models.py:77
 msgid "identification code"
 msgstr "codice di identificazione"
 
-#: models.py:68
+#: models.py:77
 msgid "An alphanumeric identification code, max 5 chars"
 msgstr "Un codice alfanumerico di identificazione, al massimo 5 caratteri"
 
-#: models.py:69 models.py:103
+#: models.py:78 models.py:112
 msgid "description"
 msgstr "descrizione"
 
-#: models.py:69
+#: models.py:78
 msgid "An extensive description of the project"
 msgstr "Una descrizione estesa del progetto"
 
-#: models.py:70
+#: models.py:79
 msgid "resources"
 msgstr "risorse"
 
-#: models.py:70
+#: models.py:79
 msgid "A non-structured list of linked resources: github, staging, IP, ..."
 msgstr "Un elenco non strutturato di risorse linkate: github, staging, IP, ..."
 
-#: models.py:71
+#: models.py:80
 msgid "customer"
 msgstr "cliente"
 
-#: models.py:71
+#: models.py:80
 msgid "The identifier of the customer"
 msgstr "L'identificativo del cliente"
 
-#: models.py:72
+#: models.py:81
 msgid "The manager(s) of this project"
 msgstr "I manager di progetto"
 
-#: models.py:73
+#: models.py:82
 msgid "The worker(s) of this project"
 msgstr "I lavoratori del progetto"
 
-#: models.py:74
+#: models.py:83
 msgid "project type"
 msgstr "tipo di progetto"
 
-#: models.py:74
+#: models.py:83
 msgid ""
 "Whether the project is an ongoing activity or it has a start and an end date"
 msgstr "Se il progetto è un'attività ricorrente, o ha un'inizio e una fine"
 
-#: models.py:75
+#: models.py:84
 msgid "phase"
 msgstr "fase"
 
-#: models.py:75
+#: models.py:84
 msgid "The status of advancement of the project"
 msgstr "Lo stato di avanzamento del progetto"
 
-#: models.py:76
+#: models.py:85
 msgid "status"
 msgstr "stato"
 
-#: models.py:76
+#: models.py:85
 msgid "Whether the project is active or closed"
 msgstr "Se il progetto è attivo o chiuso"
 
-#: models.py:82
+#: models.py:91
 msgid "Project"
 msgstr "Progetto"
 
-#: models.py:83
+#: models.py:92
 msgid "Projects"
 msgstr "Progetti"
 
-#: models.py:88
+#: models.py:97
 msgid "Meeting the client"
 msgstr "Incontro col cliente"
 
-#: models.py:91
+#: models.py:100
 msgid "Development or debugging"
 msgstr "Sviluppo o debugging"
 
-#: models.py:92
+#: models.py:101
 msgid "Data management"
 msgstr "Gestione o inserimento dati"
 
-#: models.py:93
+#: models.py:102
 msgid "Content management"
 msgstr "Gestione o inserimento contenuti"
 
-#: models.py:94
+#: models.py:103
 msgid "Project management"
 msgstr "Coordinamento del progetto"
 
-#: models.py:95
+#: models.py:104
 msgid "Graphic design"
 msgstr "Progettazione grafica"
 
-#: models.py:96
+#: models.py:105
 msgid "Marketing and commercial activities"
 msgstr "Attività commerciali e di marketing"
 
-#: models.py:97
+#: models.py:106
 msgid "Internal meeting"
 msgstr "Riunione interna"
 
-#: models.py:98
+#: models.py:107
 msgid "Other"
 msgstr "Altro"
 
-#: models.py:101
+#: models.py:110
 msgid "project"
 msgstr "progetto"
 
-#: models.py:102
+#: models.py:111
 msgid "activity type"
 msgstr "tipo attività"
 
-#: models.py:102
+#: models.py:111
 msgid "Select the type of activity. Don't be picky."
 msgstr "Selezionare il tipo di attività. Senza essere pignoli."
 
-#: models.py:103
+#: models.py:112
 msgid "A very brief description of the activity (max 256 chars)."
 msgstr "Una descrizione sintetica dell'attività (massimo 256 caratteri)."
 
-#: models.py:104
+#: models.py:113
 msgid "hours worked"
 msgstr "ore lavorate"
 
-#: models.py:104
+#: models.py:113
 msgid "Number of hours worked, can be a decimal"
 msgstr "Numero di ore lavorate (può essere decimale)"
 
-#: models.py:113 models.py:125 models.py:137
+#: models.py:122 models.py:134 models.py:146
 msgid "worker"
 msgstr "lavoratore"
 
-#: models.py:114 models.py:126 models.py:138
+#: models.py:123 models.py:135 models.py:147
 msgid "owner"
 msgstr "proprietario"
 
-#: models.py:115
+#: models.py:124
 msgid "activity date"
 msgstr "data attività"
 
-#: models.py:115
+#: models.py:124
 msgid "Pick up the exact date of the activity."
 msgstr "Scegliere la data dell'attività"
 
-#: models.py:121
+#: models.py:130
 msgid "Activity"
 msgstr "Attività"
 
-#: models.py:122
+#: models.py:131
 msgid "Activities"
 msgstr "Attività"
 
-#: models.py:127
+#: models.py:136
 msgid "week"
 msgstr "settimana"
 
-#: models.py:127
+#: models.py:136
 msgid "The week"
 msgstr "La settimana"
 
-#: models.py:133
+#: models.py:142
 msgid "Weekly activity"
 msgstr "Attività settimanale"
 
-#: models.py:134
+#: models.py:143
 msgid "Weekly activities"
 msgstr "Attività settimanali"
 
-#: models.py:139
+#: models.py:148
 msgid "When the activity started."
 msgstr "Quando l'attività inizia"
 
-#: models.py:140
+#: models.py:149
 msgid "end_date"
 msgstr "data finale"
 
-#: models.py:140
+#: models.py:149
 msgid "When the activity will end."
 msgstr "Quando l'attività finisce"
 
-#: models.py:141
+#: models.py:150
 msgid "recurrences"
 msgstr "ricorrenze"
 
-#: models.py:144
+#: models.py:153
 msgid "Recurring activity"
 msgstr "Attività ricorrente"
 
-#: models.py:145
+#: models.py:154
 msgid "Recurring activities"
 msgstr "Attività ricorrenti"
 
-#: templates/base.html:40
-msgid "My Profile"
-msgstr "Il mio profilo"
-
-#: templates/base.html:41
-msgid "Logout"
-msgstr "Esci"
-
-#: templates/base.html:43
-msgid "Sign Up"
-msgstr "Registrazione"
-
-#: templates/base.html:44
-msgid "Log In"
-msgstr "Entra"
-
-#: templates/admin/base_site.html:4 templates/admin/base_site.html.py:7
+#: templates/admin/base_site.html:4 templates/admin/base_site.html.py:10
 msgid "DEPP Activity tracking system"
 msgstr "Sistema di tracciamento attività di DEPP"
+
+#: templates/admin/base_site.html:8
+msgid "back to site"
+msgstr "torna al sito"
+
+#~ msgid "My Profile"
+#~ msgstr "Il mio profilo"
+
+#~ msgid "Logout"
+#~ msgstr "Esci"
+
+#~ msgid "Sign Up"
+#~ msgstr "Registrazione"
+
+#~ msgid "Log In"
+#~ msgstr "Entra"

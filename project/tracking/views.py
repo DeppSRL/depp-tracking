@@ -5,7 +5,7 @@ import csvkit
 from dateutil.parser import parse
 from django.db.models import Q
 from django.http import HttpResponse, Http404
-from django.views.generic import View
+from django.views.generic import View, TemplateView
 from rest_framework import viewsets, routers, serializers
 from django.contrib.auth.models import Group, User
 from .models import Worker, Project, Activity, HoursDict
@@ -51,6 +51,18 @@ class ActivityViewSet(viewsets.ModelViewSet):
         return qs.filter(owner=self.request.user.worker)
 
 
+
+class ReportsView(TemplateView):
+
+    def get_context_data(self, **kwargs):
+        context = super(ReportsView, self).get_context_data(**kwargs)
+
+        context['workers'] = Worker.objects.all()
+        context['projects'] = Project.objects.all()
+
+        return context
+
+
 class CSVView(View):
     months = []
 
@@ -70,8 +82,9 @@ class CSVView(View):
 
     def get(self, request, *args, **kwargs):
         # Create the HttpResponse object with the appropriate CSV header.
-        response = HttpResponse(mimetype='text/csv')
-        response['Content-Disposition'] = 'attachment; filename={0}.csv'.format(self.get_csv_filename())
+        response = HttpResponse(mimetype='text/plain')
+        # response = HttpResponse(mimetype='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename={0}.csv'.format(self.get_csv_filename())
 
         self.write_csv(response)
 
