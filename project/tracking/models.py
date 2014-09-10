@@ -221,6 +221,7 @@ class HoursDict(OrderedDict):
                     )
 
                     if not d_months:
+                        d_months.append(from_date)
                         d_months.append(to_date)
                     else:
                         if from_date < d_months[0]:
