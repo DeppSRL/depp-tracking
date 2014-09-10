@@ -3,6 +3,7 @@ import csv
 import locale
 import csvkit
 from dateutil.parser import parse
+from django.conf import settings
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.views.generic import View, TemplateView
@@ -82,9 +83,12 @@ class CSVView(View):
 
     def get(self, request, *args, **kwargs):
         # Create the HttpResponse object with the appropriate CSV header.
-        response = HttpResponse(mimetype='text/plain')
-        # response = HttpResponse(mimetype='text/csv')
-        # response['Content-Disposition'] = 'attachment; filename={0}.csv'.format(self.get_csv_filename())
+
+        if settings.DEBUG:
+            response = HttpResponse(mimetype='text/plain')
+        else:
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment; filename={0}.csv'.format(self.get_csv_filename())
 
         self.write_csv(response)
 
