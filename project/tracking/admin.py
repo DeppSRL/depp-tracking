@@ -91,7 +91,7 @@ class BaseActivityAdmin(admin.ModelAdmin):
         qs = super(BaseActivityAdmin, self).queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(owner=request.user.worker)
+        return qs.filter(owner=request.user.worker).distinct()
 
     def get_list_filter(self, request):
         lf = super(BaseActivityAdmin, self).get_list_filter(request)[:]
@@ -116,21 +116,21 @@ class BaseActivityAdmin(admin.ModelAdmin):
         # only superusers can change that
         if db_field.name == 'owner':
             if not request.user.is_superuser:
-                field.queryset = field.queryset.filter(id=request.user.worker.id)
+                field.queryset = field.queryset.filter(id=request.user.worker.id).distinct()
 
         # employees can only add their own activities
         if db_field.name == 'worker':
             if not request.user.worker.is_manager() \
                     and not request.user.worker.is_project_manager() \
                     and not request.user.is_superuser:
-                field.queryset = field.queryset.filter(id=request.user.worker.id)
+                field.queryset = field.queryset.filter(id=request.user.worker.id).distinct()
 
         # employees can only see projects they work in or manage
         if db_field.name == 'project':
             if request.user.worker.is_manager() and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(
                     Q(managers=request.user.worker) | Q(workers=request.user.worker)
-                )
+                ).distinct()
         return field
 
 class ActivityAdmin(BaseActivityAdmin):
