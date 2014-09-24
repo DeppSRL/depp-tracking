@@ -135,12 +135,14 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
 class ActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
+    ordering = ['-activity_date']
     search_fields = ['description',]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
 
 class RecurringActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'recurrences']
     list_filter = ['worker', 'project', 'activity_type', 'project__status']
+    ordering = ['-end_date', '-start_date']
 
 
 class WeeklyAdminForm(forms.ModelForm):
@@ -160,6 +162,8 @@ class WeeklyAdminForm(forms.ModelForm):
 class WeeklyActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'week']
     list_filter = ['worker', 'project', 'activity_type', 'project__status']
+    ordering = ['-week']
+
     form = WeeklyAdminForm
 
 admin.site.register(Worker, WorkerAdmin)
