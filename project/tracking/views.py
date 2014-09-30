@@ -58,7 +58,7 @@ class ReportsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ReportsView, self).get_context_data(**kwargs)
 
-        context['workers'] = Worker.objects.all()
+        context['workers'] = Worker.objects.exclude(user__username='admin')
         context['projects'] = Project.objects.all()
 
         return context
@@ -175,7 +175,7 @@ class ProjectCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict()
+        self.hours = HoursDict(exclude_admin=True)
         self.project = self.kwargs.get('project','')
         self.projects = sorted(
             list(
@@ -245,5 +245,5 @@ class OverviewCSVView(CSVView):
             writer.writerow(row)
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict()
+        self.hours = HoursDict(exclude_admin=True)
         return super(OverviewCSVView, self).get(request, *args, **kwargs)

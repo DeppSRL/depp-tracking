@@ -161,6 +161,11 @@ class HoursDict(OrderedDict):
         Build and return a HoursDict instance, containing all activities,
         already computed by months.
         """
+
+        exclude_admin = False
+        if 'exclude_admin' in kwargs:
+            exclude_admin = bool(kwargs.pop('exclude_admin'))
+
         super(HoursDict, self).__init__(*args, **kwargs)
 
         conns = connections[Activity.objects.db]
@@ -168,8 +173,12 @@ class HoursDict(OrderedDict):
 
         for w in workers:
             wid = w.user.username
+            if exclude_admin and w.user.username == 'admin':
+                continue
+
             self[wid] = OrderedDict()
             for p in w.worker_projects.all():
+
                 pid = p.identification_code
                 self[wid][pid] = OrderedDict()
 
