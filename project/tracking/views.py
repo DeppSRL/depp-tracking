@@ -65,15 +65,21 @@ class ReportsView(TemplateView):
 
 
 class CSVView(View):
-    months = []
+    breakdowns = []
 
     def get_csv_filename(self):
         raise NotImplementedError
 
+    def get_breakdown_type(self):
+        return ''
+
     def get_first_row(self):
-        locale.setlocale(locale.LC_ALL, 'it_IT')
-        first_row = map(lambda x: parse(x).strftime("%B %Y"), self.months[:])
-        locale.setlocale(locale.LC_ALL, '')
+        if self.get_breakdown_type() == 'W':
+            first_row = self.breakdowns[:]
+        else:
+            locale.setlocale(locale.LC_ALL, 'it_IT')
+            first_row = map(lambda x: parse(x).strftime("%B %Y"), self.breakdowns[:])
+            locale.setlocale(locale.LC_ALL, '')
         first_row.insert(0, u"")
 
         return first_row
@@ -100,10 +106,12 @@ class WorkerCSVView(CSVView):
     def get_csv_filename(self):
         return 'report_worker_{0}'.format(self.worker)
 
+    def get_breakdown_type(self):
+        return 'M'
 
     def write_csv(self, response):
         worker_hours = self.hours[self.worker]
-        self.months = sorted(
+        self.breakdowns = sorted(
             list(
                 set(
                     val for sublist in [m.keys() for m in worker_hours.values()] for val in sublist
@@ -114,16 +122,16 @@ class WorkerCSVView(CSVView):
         writer = csvkit.writer(response)
         writer.writerow(self.get_first_row())
 
-        self.months.insert(0, u"")
+        self.breakdowns.insert(0, u"")
 
         for p_code, data in worker_hours.items():
             row = []
-            for month in self.months:
-                if month == u"":
+            for bd in self.breakdowns:
+                if bd == u"":
                     row.append(p_code)
                 else:
-                    if month in data:
-                        row.append(data[month])
+                    if bd in data:
+                        row.append(data[bd])
                     else:
                         row.append(0)
 
@@ -131,7 +139,7 @@ class WorkerCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict()
+        self.hours = HoursDict(breakdown_type=self.get_breakdown_type())
         self.worker = self.kwargs.get('worker','')
 
         if self.worker not in self.hours.keys():
@@ -140,14 +148,27 @@ class WorkerCSVView(CSVView):
         return super(WorkerCSVView, self).get(request, *args, **kwargs)
 
 
+class WorkerWeeklyCSVView(WorkerCSVView):
+
+    def get_csv_filename(self):
+        return 'report_worker_weekly_{0}'.format(self.worker)
+
+    def get_breakdown_type(self):
+        return 'W'
+
+
+
 class ProjectCSVView(CSVView):
 
     def get_csv_filename(self):
         return 'report_project_{0}'.format(self.project)
 
+    def get_breakdown_type(self):
+        return 'M'
+
     def write_csv(self, response):
         project_hours = self.projects_hours[self.project]
-        self.months = sorted(
+        self.breakdowns = sorted(
             list(
                 set(
                     val for sublist in [m.keys() for m in project_hours.values()] for val in sublist
@@ -158,16 +179,16 @@ class ProjectCSVView(CSVView):
         writer = csvkit.writer(response)
         writer.writerow(self.get_first_row())
 
-        self.months.insert(0, u"")
+        self.breakdowns.insert(0, u"")
 
         for w_login, data in project_hours.items():
             row = []
-            for month in self.months:
-                if month == u"":
+            for bd in self.breakdowns:
+                if bd == u"":
                     row.append(w_login)
                 else:
-                    if month in data:
-                        row.append(data[month])
+                    if bd in data:
+                        row.append(data[bd])
                     else:
                         row.append(0)
 
@@ -175,7 +196,7 @@ class ProjectCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict(exclude_admin=True)
+        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.get_breakdown_type())
         self.project = self.kwargs.get('project','')
         self.projects = sorted(
             list(
@@ -196,12 +217,22 @@ class ProjectCSVView(CSVView):
 
         return super(ProjectCSVView, self).get(request, *args, **kwargs)
 
+class ProjectWeeklyCSVView(ProjectCSVView):
+
+    def get_csv_filename(self):
+        return 'report_project_weekly_{0}'.format(self.project)
+
+    def get_breakdown_type(self):
+        return 'W'
+
 
 class OverviewCSVView(CSVView):
 
     def get_csv_filename(self):
         return 'report_overview'
 
+    def get_breakdown_type(self):
+        return ''
 
     def get_first_row(self):
         first_row = self.hours.keys()

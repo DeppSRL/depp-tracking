@@ -20,14 +20,22 @@ In questa pagina è possibile accedere a tutti i report CSV.
 <h2>Report per lavoratore</h2>
 <ul>
     {% for w in workers %}
-    <li><a href="{% url 'worker_csv' w.user.username %}">{{ w.user.username }}</a></li>
+    <li>
+        {{ w.user.username }}
+        (<a href="{% url 'worker_csv' w.user.username %}">mensile</a>)
+        (<a href="{% url 'worker_weekly_csv' w.user.username %}">settimanale</a>)
+    </li>
     {% endfor %}
 </ul>
 
 <h2>Report per progetto</h2>
 <ul>
     {% for p in projects %}
-    <li><a href="{% url 'project_csv' p.identification_code %}">{{ p.name }}</a></li>
+    <li>
+        {{ p.name }}
+        (<a href="{% url 'project_weekly_csv' p.identification_code %}">mensile</a>)
+        (<a href="{% url 'project_weekly_csv' p.identification_code %}">settimanale</a>)
+    </li>
     {% endfor %}
 </ul>
 

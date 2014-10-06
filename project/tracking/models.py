@@ -1,10 +1,9 @@
 # coding=utf-8
 from collections import OrderedDict
 import datetime
-import dateutil
 from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta
-from dateutil.rrule import rrule, MONTHLY
+from dateutil.rrule import rrule, MONTHLY, WEEKLY
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.db import models, connections
 from django.db.models import Sum, Min, Max
@@ -166,11 +165,13 @@ class HoursDict(OrderedDict):
         if 'exclude_admin' in kwargs:
             exclude_admin = bool(kwargs.pop('exclude_admin'))
 
+        breakdown_type = 'M'
+        if 'breakdown_type' in kwargs:
+            breakdown_type = kwargs.pop('breakdown_type')
+
         super(HoursDict, self).__init__(*args, **kwargs)
 
-        conns = connections[Activity.objects.db]
         workers = Worker.objects.all()
-
         for w in workers:
             wid = w.user.username
             if exclude_admin and w.user.username == 'admin':
@@ -183,79 +184,177 @@ class HoursDict(OrderedDict):
                 self[wid][pid] = OrderedDict()
 
                 #
-                # computing hours monthly breakdowns
+                # computing hours breakdowns (based on breakdown_type: monthly|weekly)
                 #
-
-                # simple activities
                 a = Activity.objects.filter(worker=w, project=p)
-                a_hours = a.extra(
-                    {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
-                ).values('month').annotate(hsum=Sum('hours'))
-                for ah in a_hours:
-                    self[wid][pid][ah['month']] = ah['hsum']
-
+                self.add_simple_activities(a, wid, pid, breakdown_type)
 
                 # weekly activities
                 a = WeeklyActivity.objects.filter(
                     worker=w, project=p
                 ).order_by('week')
-                for aw in a:
-                    # I choose to assign wednesday's month as the week month (ad arbitrium)
-                    month = Week.fromstring(aw.week).wednesday().strftime("%Y-%m-01")
-                    if month not in self[wid][pid]:
-                        self[wid][pid][month] = 0
-                    self[wid][pid][month] += aw.hours
+                self.add_weekly_activities(a, wid, pid, breakdown_type)
 
 
                 # recurring activities
                 a = RecurringActivity.objects.filter(
                     worker=w, project=p
                 ).order_by('start_date')
-
-                if a.count():
-
-                    # extract dates range (from-to), as datetime
-                    # extraction is limited to current datetime
-                    a_dates_limits = a.aggregate(from_date=Min('start_date'), to_date=Max('end_date'))
-                    from_date = parse(a_dates_limits['from_date'].strftime("%Y-%m-%d"))
-                    to_date = parse(a_dates_limits['to_date'].strftime("%Y-%m-%d"))
-                    if to_date > datetime.datetime.now():
-                        to_date = datetime.datetime.now()
-
-                    # generate all steps, month by month, with pre- and after- intervals
-                    d_months = list(
-                        rrule(
-                            MONTHLY, dtstart=parse(from_date.strftime("%Y-%m-01"))
-                        ).between(from_date, to_date)
-                    )
-
-                    if not d_months:
-                        d_months.append(from_date)
-                        d_months.append(to_date)
-                    else:
-                        if from_date < d_months[0]:
-                            d_months.insert(0, from_date)
-                        if to_date > d_months[-1]:
-                            d_months.append(to_date)
-
-                    # for each month interval, the hours
-                    # worked on all activities are summed
-                    for i, d_month in enumerate(d_months[:-1]):
-                        month = d_month.strftime("%Y-%m-01")
-                        for ar in a:
-                            n_recurrences = len(
-                                ar.recurrences.to_dateutil_rruleset(
-                                  dtstart=d_month
-                                ).between(
-                                    d_month,
-                                    d_months[i+1],
-                                    inc=False
-                                )
-                            )
-                            if month not in self[wid][pid]:
-                                self[wid][pid][month] = 0
-                            self[wid][pid][month] += ar.hours * n_recurrences
+                self.add_recurring_activities(a, wid, pid, breakdown_type)
 
                 # re-sort ordered dict, on month key (improve readability)
                 sd = OrderedDict(sorted(self[wid][pid].items(), key=lambda t: t[0]))
                 self[wid][pid] = sd
+
+    def add_simple_activities(self, a, wid, pid, breakdown_type='M'):
+        """
+        Add simple activities breakdown to self
+        :param a:              Activity array
+        :param wid:            Worker ID (username)
+        :param pid:            Project ID
+        :param breakdown_type: M or W
+        :return: None
+        """
+        conns = connections[Activity.objects.db]
+
+        if breakdown_type == 'W':
+            # computes daily breakdowns for worked hours
+            a_hours = a.extra(
+                {'day':conns.ops.date_trunc_sql('day', 'activity_date')}
+            ).values('day').annotate(hsum=Sum('hours'))
+
+            # rearrange in weekly breakdowns,
+            # limited to last PAST_WEEKS_IN_REPORTS
+            for ah in a_hours:
+                d = datetime.datetime.strptime(ah['day'], "%Y-%m-%d")
+                w = Week.withdate(d)
+                w_iso = w.isoformat()
+                week = w.monday().strftime("%Y-%m-%d")
+                if Week.thisweek() - w <= settings.PAST_WEEKS_IN_REPORTS:
+                    if week not in self[wid][pid]:
+                        self[wid][pid][week] = 0
+                    self[wid][pid][week] += ah['hsum']
+        else:
+            # computes monthly breakdowns for worked hours
+            a_hours = a.extra(
+                {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
+            ).values('month').annotate(hsum=Sum('hours'))
+            for ah in a_hours:
+                if ah['month'] not in self[wid][pid]:
+                    self[wid][pid][ah['month']] = 0
+                self[wid][pid][ah['month']] += ah['hsum']
+
+    def add_weekly_activities(self, a, wid, pid, breakdown_type='M'):
+        """
+        Add weekly activities breakdown to self
+        :param a:              Activity array
+        :param wid:            Worker ID (username)
+        :param pid:            Project ID
+        :param breakdown_type: M or W
+        :return: None
+        """
+        for aw in a:
+            if breakdown_type == 'W':
+                # add hours to weekly breakdowns
+                # limited to last PAST_WEEKS_IN_REPORTS
+                w = Week.fromstring(aw.week)
+                if Week.thisweek() - w <= settings.PAST_WEEKS_IN_REPORTS:
+                    week = w.monday().strftime("%Y-%m-%d")
+                    if week not in self[wid][pid]:
+                        self[wid][pid][week] = 0
+                    self[wid][pid][week] += aw.hours
+            else:
+                # I choose to assign wednesday's month
+                # as the week'smonth (ad arbitrium)
+                # when rearranging into monthly breakdowns
+                month = Week.fromstring(aw.week).wednesday().strftime("%Y-%m-01")
+                if month not in self[wid][pid]:
+                    self[wid][pid][month] = 0
+                self[wid][pid][month] += aw.hours
+
+    def add_recurring_activities(self, a, wid, pid, breakdown_type='M'):
+        """
+        Add recurring activities breakdown to self
+        :param a:              Activity array
+        :param wid:            Worker ID (username)
+        :param pid:            Project ID
+        :param breakdown_type: M or W
+        :return: None
+        """
+        if a.count():
+
+            # extract dates range (from-to), as datetime
+            # extraction is limited to current datetime
+            a_dates_limits = a.aggregate(from_date=Min('start_date'), to_date=Max('end_date'))
+            from_date = parse(a_dates_limits['from_date'].strftime("%Y-%m-%d"))
+            to_date = parse(a_dates_limits['to_date'].strftime("%Y-%m-%d"))
+            if to_date > datetime.datetime.now():
+                to_date = datetime.datetime.now()
+
+            if breakdown_type == 'W':
+                # get the latest N weeks
+                w_to = Week.thisweek()
+                w_from = w_to - settings.PAST_WEEKS_IN_REPORTS
+
+                from_date = datetime.datetime(*w_from.monday().timetuple()[:-4])
+                to_date = datetime.datetime(*w_to.monday().timetuple()[:-4])
+
+                # generate all steps, weeks by weeks, with pre- and after- intervals
+                d_weeks = list(
+                    rrule(
+                        WEEKLY, dtstart=from_date
+                    ).between(from_date, to_date, inc=True)
+                )
+
+                # for each week interval, the hours
+                # worked on all activities are summed
+                for i, d_week in enumerate(d_weeks[:-1]):
+                    week = d_week.strftime("%Y-%m-%d")
+                    for ar in a:
+                        n_recurrences = len(
+                            ar.recurrences.to_dateutil_rruleset(
+                              dtstart=d_week
+                            ).between(
+                                d_week,
+                                d_weeks[i+1],
+                                inc=False
+                            )
+                        )
+                        if week not in self[wid][pid]:
+                            self[wid][pid][week] = 0
+                        self[wid][pid][week] += ar.hours * n_recurrences
+
+            else:
+                # generate all steps, month by month, with pre- and after- intervals
+                d_months = list(
+                    rrule(
+                        MONTHLY, dtstart=parse(from_date.strftime("%Y-%m-01"))
+                    ).between(from_date, to_date)
+                )
+
+                if not d_months:
+                    d_months.append(from_date)
+                    d_months.append(to_date)
+                else:
+                    if from_date < d_months[0]:
+                        d_months.insert(0, from_date)
+                    if to_date > d_months[-1]:
+                        d_months.append(to_date)
+
+                # for each month interval, the hours
+                # worked on all activities are summed
+                for i, d_month in enumerate(d_months[:-1]):
+                    month = d_month.strftime("%Y-%m-01")
+                    for ar in a:
+                        n_recurrences = len(
+                            ar.recurrences.to_dateutil_rruleset(
+                              dtstart=d_month
+                            ).between(
+                                d_month,
+                                d_months[i+1],
+                                inc=False
+                            )
+                        )
+                        if month not in self[wid][pid]:
+                            self[wid][pid][month] = 0
+                        self[wid][pid][month] += ar.hours * n_recurrences
