@@ -157,7 +157,7 @@ class WeeklyAdminForm(forms.ModelForm):
         locale.setlocale(locale.LC_ALL, "{0}.UTF-8".format(settings.LANGUAGE_CODE.replace("-","_")))
         from_word = _("from")
         w = Week.thisweek()
-        WEEKS = [(w.isoformat(), _("this week"))] + [((w - i).isoformat(), _("from") + (w-i).monday().strftime(" %d %B")) for i in range(1, settings.PAST_WEEKS)]
+        WEEKS = [(w.isoformat(), _("this week"))] + [((w - i).isoformat(), _("from") + (w-i).monday().strftime(" %d %B")) for i in range(1, settings.PAST_WEEKS_IN_REPORTS)]
         super(WeeklyAdminForm, self).__init__(*args, **kwargs)
 
         self.fields['week'].widget = forms.Select(choices = WEEKS)
