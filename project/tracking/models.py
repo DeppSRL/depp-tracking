@@ -311,18 +311,22 @@ class HoursDict(OrderedDict):
                 for i, d_week in enumerate(d_weeks[:-1]):
                     week = d_week.strftime("%Y-%m-%d")
                     for ar in a:
-                        n_recurrences = len(
-                            ar.recurrences.to_dateutil_rruleset(
-                              dtstart=d_week
-                            ).between(
-                                d_week,
-                                d_weeks[i+1],
-                                inc=False
+                        a_start_date = datetime.datetime(*ar.start_date.timetuple()[:-4])
+                        a_end_date = datetime.datetime(*ar.end_date.timetuple()[:-4])
+                        if a_start_date <= d_weeks[i+1] and a_end_date >= d_week:
+                            n_recurrences = len(
+                                ar.recurrences.to_dateutil_rruleset(
+                                  dtstart=max(d_week, a_start_date),
+                                  dtend=min(d_weeks[i+1], a_end_date)
+                                ).between(
+                                    max(d_week, a_start_date),
+                                    min(d_weeks[i+1], a_end_date),
+                                    inc=True
+                                )
                             )
-                        )
-                        if week not in self[wid][pid]:
-                            self[wid][pid][week] = 0
-                        self[wid][pid][week] += ar.hours * n_recurrences
+                            if week not in self[wid][pid]:
+                                self[wid][pid][week] = 0
+                            self[wid][pid][week] += ar.hours * n_recurrences
 
             else:
                 # generate all steps, month by month, with pre- and after- intervals
@@ -346,15 +350,19 @@ class HoursDict(OrderedDict):
                 for i, d_month in enumerate(d_months[:-1]):
                     month = d_month.strftime("%Y-%m-01")
                     for ar in a:
-                        n_recurrences = len(
-                            ar.recurrences.to_dateutil_rruleset(
-                              dtstart=d_month
-                            ).between(
-                                d_month,
-                                d_months[i+1],
-                                inc=False
+                        a_start_date = datetime.datetime(*ar.start_date.timetuple()[:-4])
+                        a_end_date = datetime.datetime(*ar.end_date.timetuple()[:-4])
+                        if a_start_date <= d_months[i+1] and a_end_date >= d_month:
+                            n_recurrences = len(
+                                ar.recurrences.to_dateutil_rruleset(
+                                  dtstart=max(d_month, a_start_date),
+                                  dtend=min(d_months[i+1], a_end_date)
+                                ).between(
+                                    max(d_month, a_start_date),
+                                    min(d_months[i+1], a_end_date),
+                                    inc=True
+                                )
                             )
-                        )
-                        if month not in self[wid][pid]:
-                            self[wid][pid][month] = 0
-                        self[wid][pid][month] += ar.hours * n_recurrences
+                            if month not in self[wid][pid]:
+                                self[wid][pid][month] = 0
+                            self[wid][pid][month] += ar.hours * n_recurrences
