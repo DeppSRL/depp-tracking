@@ -360,7 +360,7 @@ class HoursDict(OrderedDict):
                                 ).between(
                                     max(d_month, a_start_date),
                                     min(d_months[i+1], a_end_date),
-                                    inc=True
+                                    inc=False
                                 )
                             )
                             if month not in self[wid][pid]:
