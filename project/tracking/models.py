@@ -321,7 +321,7 @@ class HoursDict(OrderedDict):
                                 ).between(
                                     max(d_week, a_start_date),
                                     min(d_weeks[i+1], a_end_date),
-                                    inc=True
+                                    inc=False
                                 )
                             )
                             if week not in self[wid][pid]:
