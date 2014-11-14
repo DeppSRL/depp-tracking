@@ -171,7 +171,7 @@ class HoursDict(OrderedDict):
 
         super(HoursDict, self).__init__(*args, **kwargs)
 
-        workers = Worker.objects.all()
+        workers = Worker.objects.all().order_by('user__username')
         for w in workers:
             wid = w.user.username
             if exclude_admin and w.user.username == 'admin':
