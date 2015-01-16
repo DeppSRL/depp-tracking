@@ -144,8 +144,8 @@ class WeeklyActivity(BaseActivity):
 class RecurringActivity(BaseActivity):
     worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_recurring_activities')
     owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_recurring_activities')
-    start_date = models.DateField(_("start date"), help_text=_("When the activity started."))
-    end_date = models.DateField(_("end_date"), help_text=_("When the activity will end."))
+    start_date = models.DateField(_("start date"), null=False, blank=False, default=0, help_text=_("When the activity started."))
+    end_date = models.DateField(_("end_date"), null=True, blank=True, help_text=_("When the activity will end."))
     recurrences = recurrence.fields.RecurrenceField(_("recurrences"), blank=True, null=True)
 
     class Meta:
