@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}Elenco rapporti CSV{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">{% trans 'DEPP Activity tracking system' %}</h1>
+{% endblock %}
+
+{% block content %}
+<h1>Sito di management delle attività</h1>
+<p>
+In questa pagina è possibile accedere a tutti i report CSV.
+</p>
+<ul>
+    <li><a href="{% url 'admin:index' %}">Interfaccia di amministrazione</a></li>
+    <li><a href="{% url 'overview_csv' %}">Report riassuntivo</a></li>
+</ul>
+
+<h2>Report per lavoratore</h2>
+<ul>
+    {% for w in workers %}
+    <li>
+        {{ w.user.username }}
+        (<a href="{% url 'worker_csv' w.user.username %}">mensile</a>)
+        (<a href="{% url 'worker_weekly_csv' w.user.username %}">settimanale</a>)
+    </li>
+    {% endfor %}
+</ul>
+
+<h2>Report per progetto</h2>
+<ul>
+    {% for p in projects %}
+    <li>
+        {{ p.name }}
+        (<a href="{% url 'project_weekly_csv' p.identification_code %}">mensile</a>)
+        (<a href="{% url 'project_weekly_csv' p.identification_code %}">settimanale</a>)
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock content %}
