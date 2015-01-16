@@ -39,7 +39,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 ########## DATABASE CONFIGURATION
 DATABASES = {
-    'default': env.db(default='sqlite:///{0}'.format(normpath(join(RESOURCES_PATH, 'db', 'default.db'))))
+    'default': env.db('DB_DEFAULT_URL'),
 }
 ########## END DATABASE CONFIGURATION
 
