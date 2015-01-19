@@ -226,7 +226,7 @@ class HoursDict(OrderedDict):
             # rearrange in weekly breakdowns,
             # limited to last PAST_WEEKS_IN_REPORTS
             for ah in a_hours:
-                d = datetime.datetime.strptime(ah['day'], "%Y-%m-%d")
+                d = ah['day']
                 w = Week.withdate(d)
                 w_iso = w.isoformat()
                 week = w.monday().strftime("%Y-%m-%d")
@@ -239,10 +239,12 @@ class HoursDict(OrderedDict):
             a_hours = a.extra(
                 {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
             ).values('month').annotate(hsum=Sum('hours'))
+
             for ah in a_hours:
-                if ah['month'] not in self[wid][pid]:
-                    self[wid][pid][ah['month']] = 0
-                self[wid][pid][ah['month']] += ah['hsum']
+                ah_month = ah['month'].strftime("%Y-%m-%d")
+                if ah_month not in self[wid][pid]:
+                    self[wid][pid][ah_month] = 0
+                self[wid][pid][ah_month] += ah['hsum']
 
     def add_weekly_activities(self, a, wid, pid, breakdown_type='M'):
         """
