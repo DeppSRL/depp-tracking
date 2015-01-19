@@ -133,6 +133,9 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
         # employees can only see projects they work in or manage
         if db_field.name == 'project':
+            # order the project field choices by name
+            field.queryset = field.queryset.order_by('name')
+            
             if request.user.worker.is_manager() and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(
                     Q(managers=request.user.worker) | Q(workers=request.user.worker)
@@ -144,6 +147,7 @@ class ActivityAdmin(BaseActivityAdmin):
     ordering = ['-activity_date']
     search_fields = ['description',]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
+
 
 class RecurringActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'recurrences']
