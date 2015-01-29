@@ -101,13 +101,15 @@ class CSVView(View):
         return response
 
 
-class WorkerCSVView(CSVView):
+class WorkerMonthlyCSVView(CSVView):
+    hours = None
+    worker = None
+    breakdowns = None
+    type = None
+    breakdown_type = None
 
     def get_csv_filename(self):
-        return 'report_worker_{0}'.format(self.worker)
-
-    def get_breakdown_type(self):
-        return 'M'
+        return 'report_worker_{0}_{1}_{2}'.format(self.worker, self.breakdown_type, self.type)
 
     def write_csv(self, response):
         worker_hours = self.hours[self.worker]
@@ -139,26 +141,24 @@ class WorkerCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict(breakdown_type=self.get_breakdown_type())
+
+        self.type = self.kwargs.get('type',None)
+
+        only_latest_year = True
+        if type == 'all':
+            only_latest_year = False
+
+        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=only_latest_year)
         self.worker = self.kwargs.get('worker','')
 
         if self.worker not in self.hours.keys():
             raise Http404
 
-        return super(WorkerCSVView, self).get(request, *args, **kwargs)
+        return super(WorkerMonthlyCSVView, self).get(request, *args, **kwargs)
 
 
-class WorkerWeeklyCSVView(WorkerCSVView):
-
-    def get_csv_filename(self):
-        return 'report_worker_weekly_{0}'.format(self.worker)
-
-    def get_breakdown_type(self):
-        return 'W'
-
-
-
-class ProjectCSVView(CSVView):
+class ProjectMonthlyCSVView(CSVView):
 
     def get_csv_filename(self):
         return 'report_project_{0}'.format(self.project)
@@ -215,9 +215,9 @@ class ProjectCSVView(CSVView):
         if self.project not in self.projects:
             raise Http404
 
-        return super(ProjectCSVView, self).get(request, *args, **kwargs)
+        return super(ProjectMonthlyCSVView, self).get(request, *args, **kwargs)
 
-class ProjectWeeklyCSVView(ProjectCSVView):
+class ProjectWeeklyCSVView(ProjectMonthlyCSVView):
 
     def get_csv_filename(self):
         return 'report_project_weekly_{0}'.format(self.project)

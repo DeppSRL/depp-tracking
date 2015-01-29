@@ -160,8 +160,10 @@ class HoursDict(OrderedDict):
         Build and return a HoursDict instance, containing all activities,
         already computed by months.
         """
+        exclude_admin = True
+        only_latest_year = kwargs.get('only_latest_year', False)
+        latest_year = datetime.datetime.now().year
 
-        exclude_admin = False
         if 'exclude_admin' in kwargs:
             exclude_admin = bool(kwargs.pop('exclude_admin'))
 
@@ -172,39 +174,47 @@ class HoursDict(OrderedDict):
         super(HoursDict, self).__init__(*args, **kwargs)
 
         workers = Worker.objects.all().order_by('user__username')
-        for w in workers:
-            wid = w.user.username
-            if exclude_admin and w.user.username == 'admin':
+        for worker in workers:
+            worker_username = worker.user.username
+            if exclude_admin and worker.user.username == 'admin':
                 continue
 
-            self[wid] = OrderedDict()
-            for p in w.worker_projects.all():
+            self[worker_username] = OrderedDict()
+            for project in worker.worker_projects.all():
 
-                pid = p.identification_code
-                self[wid][pid] = OrderedDict()
+                project_code = project.identification_code
+                self[worker_username][project_code] = OrderedDict()
 
                 #
                 # computing hours breakdowns (based on breakdown_type: monthly|weekly)
                 #
-                a = Activity.objects.filter(worker=w, project=p)
-                self.add_simple_activities(a, wid, pid, breakdown_type)
+
+                activities = Activity.objects.filter(worker=worker, project=project)
 
                 # weekly activities
-                a = WeeklyActivity.objects.filter(
-                    worker=w, project=p
+                weekly_activities = WeeklyActivity.objects.filter(
+                    worker=worker, project=project
                 ).order_by('week')
-                self.add_weekly_activities(a, wid, pid, breakdown_type)
-
 
                 # recurring activities
-                a = RecurringActivity.objects.filter(
-                    worker=w, project=p
+                recurring_activities = RecurringActivity.objects.filter(
+                    worker=worker, project=project
                 ).order_by('start_date')
-                self.add_recurring_activities(a, wid, pid, breakdown_type)
+
+
+                # if only_latest_year flag is true, apply the year filter
+                if only_latest_year:
+                    activities = activities.filter(activity_date__year=latest_year)
+                    weekly_activities = weekly_activities.filter(week__startswith=str(latest_year))
+                    recurring_activities = recurring_activities.filter(start_date__year=latest_year)
+
+                self.add_simple_activities(activities, worker_username, project_code, breakdown_type)
+                self.add_weekly_activities(weekly_activities, worker_username, project_code, breakdown_type)
+                self.add_recurring_activities(recurring_activities, worker_username, project_code, breakdown_type)
 
                 # re-sort ordered dict, on month key (improve readability)
-                sd = OrderedDict(sorted(self[wid][pid].items(), key=lambda t: t[0]))
-                self[wid][pid] = sd
+                sd = OrderedDict(sorted(self[worker_username][project_code].items(), key=lambda t: t[0]))
+                self[worker_username][project_code] = sd
 
     def add_simple_activities(self, a, wid, pid, breakdown_type='M'):
         """

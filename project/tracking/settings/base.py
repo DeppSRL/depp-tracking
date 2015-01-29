@@ -125,7 +125,7 @@ SECRET_KEY = r"hr32kv_-b(ex6#p2++#($zsz(z%c$(sh))z!i5o1@%carp%ci0"
 ########## SITE CONFIGURATION
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost',]
 ########## END SITE CONFIGURATION
 
 

@@ -26,12 +26,14 @@ class ProjectAdminForm(forms.ModelForm):
         }
 
 class WorkerAdmin(admin.ModelAdmin):
+
     def report_url(self, obj):
-        monthly_url = reverse('worker_csv', args=[obj.user.username,])
-        weekly_url = reverse('worker_weekly_csv', args=[obj.user.username,])
-        return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
-            monthly_url, weekly_url
-        )
+        # monthly_url = reverse('worker_monthly_csv', args=[obj.user.username,])
+        # weekly_url = reverse('worker_weekly_csv', args=[obj.user.username,])
+        # return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
+        #     monthly_url, weekly_url
+        # )
+        return
 
     report_url.allow_tags = True
     report_url.short_description = "Link ai report"
@@ -40,18 +42,19 @@ class WorkerAdmin(admin.ModelAdmin):
 
 class ProjectAdmin(admin.ModelAdmin):
     def report_url(self, obj):
-        monthly_url = reverse('project_csv', args=[obj.identification_code,])
-        weekly_url = reverse('project_weekly_csv', args=[obj.identification_code,])
-        return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
-            monthly_url, weekly_url
-        )
+        # monthly_url = reverse('project_monthly_csv', args=[obj.identification_code,])
+        # weekly_url = reverse('project_weekly_csv', args=[obj.identification_code,])
+        # return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
+        #     monthly_url, weekly_url
+        # )
+        return
+    report_url.allow_tags = True
+    report_url.short_description = "Link ai report"
 
     search_fields = ['^description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')
     list_display = ('__unicode__', 'report_url')
     form = ProjectAdminForm
-    report_url.allow_tags = True
-    report_url.short_description = "Link ai report"
 
 
 
