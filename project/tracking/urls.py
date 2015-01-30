@@ -46,7 +46,7 @@ urls = (
     url(r'^reports/project/(?P<breakdown_type>[\w-]+)/(?P<project>[\w-]+)_(?P<period_type>[\w-]+).csv$', ProjectCSVView.as_view(), name='project_csv'),
 
     # overview
-    url(r'^report/overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
+    url(r'^report/overview_(?P<period_type>[\w-]+).csv$', OverviewCSVView.as_view(), name='overview_csv'),
 )
 urlpatterns = patterns('', *urls)
 

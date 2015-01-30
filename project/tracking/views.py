@@ -52,7 +52,6 @@ class ActivityViewSet(viewsets.ModelViewSet):
         return qs.filter(owner=self.request.user.worker)
 
 
-
 class ReportsView(TemplateView):
 
     def get_context_data(self, **kwargs):
@@ -273,6 +272,13 @@ class OverviewCSVView(CSVView):
             writer.writerow(row)
 
     def get(self, request, *args, **kwargs):
+         # sets self params based on kwargs
+
+        self.period_type = self.kwargs.get('period_type',None)
+
+        self.only_latest_year = True
+        if self.period_type == 'all':
+            self.only_latest_year = False
 
         self.get_request_params()
         self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
