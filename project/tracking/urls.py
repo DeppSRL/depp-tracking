@@ -38,11 +38,13 @@ urls = (
 
     # csv reports
     url(r'^reports/$', login_required(ReportsView.as_view(template_name="reports.html")), name="reports"),
+
     # reports workers
     url(r'^reports/worker/(?P<breakdown_type>[\w-]+)/(?P<worker>[\w-]+)_(?P<period_type>[\w-]+).csv$', WorkerCSVView.as_view(), name='worker_csv'),
+
     # reports projects
     url(r'^reports/project/(?P<breakdown_type>[\w-]+)/(?P<project>[\w-]+)_(?P<period_type>[\w-]+).csv$', ProjectCSVView.as_view(), name='project_csv'),
-    # url(r'^reports/project/weekly/(?P<project>[\w-]+).csv$', ProjectWeeklyCSVView.as_view(), name='project_weekly_csv'),
+
     # overview
     url(r'^report/overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
 )

@@ -27,33 +27,67 @@ class ProjectAdminForm(forms.ModelForm):
 
 class WorkerAdmin(admin.ModelAdmin):
 
-    def report_url(self, obj):
-        # monthly_url = reverse('worker_monthly_csv', args=[obj.user.username,])
-        # weekly_url = reverse('worker_weekly_csv', args=[obj.user.username,])
-        # return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
-        #     monthly_url, weekly_url
-        # )
-        return
+    def report_w_latest_url(self, obj):
+        url = reverse('worker_csv', args=['W',obj.user.username,'latest'])
+        return u'<a href="{0}">scarica</a>'.format(url)
 
-    report_url.allow_tags = True
-    report_url.short_description = "Link ai report"
-    list_display = ('__unicode__', 'report_url')
+    def report_m_latest_url(self, obj):
+        url = reverse('worker_csv', args=['M',obj.user.username,'latest'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+
+    def report_w_all_url(self, obj):
+        url = reverse('worker_csv', args=['W',obj.user.username,'all'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    def report_m_all_url(self, obj):
+        url = reverse('worker_csv', args=['M',obj.user.username,'all'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    report_w_all_url.allow_tags = True
+    report_m_all_url.allow_tags = True
+    report_w_latest_url.allow_tags = True
+    report_m_latest_url.allow_tags = True
+
+    report_w_all_url.short_description = "Report settimanale globale"
+    report_m_all_url.short_description = "Report mensile globale"
+    report_w_latest_url.short_description = "Report settimanale anno corrente"
+    report_m_latest_url.short_description = "Report mensile anno corrente"
+
+    list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
 
 
 class ProjectAdmin(admin.ModelAdmin):
-    def report_url(self, obj):
-        # monthly_url = reverse('project_monthly_csv', args=[obj.identification_code,])
-        # weekly_url = reverse('project_weekly_csv', args=[obj.identification_code,])
-        # return u'report attività: <a href="{0}">mensile</a>, <a href="{1}">settimanale</a>'.format(
-        #     monthly_url, weekly_url
-        # )
-        return
-    report_url.allow_tags = True
-    report_url.short_description = "Link ai report"
+    
+    def report_w_latest_url(self, obj):
+        url = reverse('project_csv', args=['W',obj.identification_code,'latest'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    def report_m_latest_url(self, obj):
+        url = reverse('project_csv', args=['M',obj.identification_code,'latest'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    def report_w_all_url(self, obj):
+        url = reverse('project_csv', args=['W',obj.identification_code,'all'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    def report_m_all_url(self, obj):
+        url = reverse('project_csv', args=['M',obj.identification_code,'all'])
+        return u'<a href="{0}">scarica</a>'.format(url)
+
+    report_w_all_url.allow_tags = True
+    report_m_all_url.allow_tags = True
+    report_w_latest_url.allow_tags = True
+    report_m_latest_url.allow_tags = True
+
+    report_w_all_url.short_description = "Report settimanale globale"
+    report_m_all_url.short_description = "Report mensile globale"
+    report_w_latest_url.short_description = "Report settimanale anno corrente"
+    report_m_latest_url.short_description = "Report mensile anno corrente"
 
     search_fields = ['^description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')
-    list_display = ('__unicode__', 'report_url')
+    list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
     form = ProjectAdminForm
 
 
