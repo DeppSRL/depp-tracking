@@ -58,8 +58,8 @@ class ReportsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ReportsView, self).get_context_data(**kwargs)
 
-        context['workers'] = Worker.objects.exclude(user__username='admin')
-        context['projects'] = Project.objects.all()
+        context['workers'] = Worker.objects.exclude(user__username='admin').order_by('user__username')
+        context['projects'] = Project.objects.order_by('-status','name')
 
         return context
 

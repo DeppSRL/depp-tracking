@@ -75,14 +75,14 @@
                 <td colspan=2><strong>Tutto</strong></td>
             </tr>
             <tr>
-                <td><strong>Progetto</strong></td>
+                <td><strong>Progetto (in grigio i progetti chiusi)</strong></td>
                 <td><strong>Mensile</strong></td>
                 <td><strong>Settimanale</strong></td>
                 <td><strong>Mensile</strong></td>
                 <td><strong>Settimanale</strong></td>
             </tr>
             {% for p in projects %}
-                <tr>
+                <tr {% if p.status == 0 %}style="background-color: #c2c2c2"{% endif %}>
                     <th scope="row">{{ p.name }}</th>
                     <td>
                         <a href="{% url 'project_csv' 'M' p.identification_code 'latest' %}">Scarica</a>
