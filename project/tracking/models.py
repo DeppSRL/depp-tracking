@@ -160,9 +160,11 @@ class HoursDict(OrderedDict):
         Build and return a HoursDict instance, containing all activities,
         already computed by months.
         """
-        exclude_admin = True
-        only_latest_year = kwargs.get('only_latest_year', False)
         latest_year = datetime.datetime.now().year
+        exclude_admin = True
+
+        if 'only_latest_year' in kwargs:
+            only_latest_year = kwargs.pop('only_latest_year', False)
 
         if 'exclude_admin' in kwargs:
             exclude_admin = bool(kwargs.pop('exclude_admin'))

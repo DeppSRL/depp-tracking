@@ -65,16 +65,15 @@ class ReportsView(TemplateView):
 
 
 class CSVView(View):
+    breakdown_type = None
+    period_type = None
     breakdowns = []
 
     def get_csv_filename(self):
         raise NotImplementedError
 
-    def get_breakdown_type(self):
-        return ''
-
     def get_first_row(self):
-        if self.get_breakdown_type() == 'W':
+        if self.breakdown_type == 'W':
             first_row = self.breakdowns[:]
         else:
             locale.setlocale(locale.LC_ALL, 'it_IT')
@@ -101,15 +100,12 @@ class CSVView(View):
         return response
 
 
-class WorkerMonthlyCSVView(CSVView):
+class WorkerCSVView(CSVView):
     hours = None
     worker = None
-    breakdowns = None
-    type = None
-    breakdown_type = None
 
     def get_csv_filename(self):
-        return 'report_worker_{0}_{1}_{2}'.format(self.worker, self.breakdown_type, self.type)
+        return 'report_worker_{0}_{1}_{2}'.format(self.worker, self.breakdown_type, self.period_type)
 
     def write_csv(self, response):
         worker_hours = self.hours[self.worker]
@@ -142,10 +138,10 @@ class WorkerMonthlyCSVView(CSVView):
 
     def get(self, request, *args, **kwargs):
 
-        self.type = self.kwargs.get('type',None)
+        self.period_type = self.kwargs.get('period_type',None)
 
         only_latest_year = True
-        if type == 'all':
+        if self.period_type == 'all':
             only_latest_year = False
 
         self.breakdown_type  = self.kwargs.get('breakdown_type',None)
@@ -155,16 +151,19 @@ class WorkerMonthlyCSVView(CSVView):
         if self.worker not in self.hours.keys():
             raise Http404
 
-        return super(WorkerMonthlyCSVView, self).get(request, *args, **kwargs)
+        return super(WorkerCSVView, self).get(request, *args, **kwargs)
 
 
-class ProjectMonthlyCSVView(CSVView):
+class ProjectCSVView(CSVView):
+    hours = None
+    project = None
+    projects = None
+    projects_hours = None
+
 
     def get_csv_filename(self):
-        return 'report_project_{0}'.format(self.project)
+        return 'report_project_{0}_{1}_{2}'.format(self.project, self.breakdown_type, self.type)
 
-    def get_breakdown_type(self):
-        return 'M'
 
     def write_csv(self, response):
         project_hours = self.projects_hours[self.project]
@@ -196,7 +195,14 @@ class ProjectMonthlyCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.get_breakdown_type())
+        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
+        self.period_type = self.kwargs.get('period_type',None)
+
+        only_latest_year = True
+        if self.period_type == 'all':
+            only_latest_year = False
+
+        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=only_latest_year)
         self.project = self.kwargs.get('project','')
         self.projects = sorted(
             list(
@@ -215,15 +221,7 @@ class ProjectMonthlyCSVView(CSVView):
         if self.project not in self.projects:
             raise Http404
 
-        return super(ProjectMonthlyCSVView, self).get(request, *args, **kwargs)
-
-class ProjectWeeklyCSVView(ProjectMonthlyCSVView):
-
-    def get_csv_filename(self):
-        return 'report_project_weekly_{0}'.format(self.project)
-
-    def get_breakdown_type(self):
-        return 'W'
+        return super(ProjectCSVView, self).get(request, *args, **kwargs)
 
 
 class OverviewCSVView(CSVView):

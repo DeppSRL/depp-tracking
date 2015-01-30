@@ -59,9 +59,9 @@
         </tbody>
     </table>
 
+
     {#    tabella per progetto #}
     <h2>Report per progetto</h2>
-
     <table class="table">
         <colgroup>
           <col style="background-color:#ffffff">
@@ -69,6 +69,11 @@
           <col span="2" style="background-color:#e4e4e4">
         </colgroup>
         <tbody>
+            <tr>
+                <td colspan=1>&nbsp;</td>
+                <td colspan=2><strong>Anno corrente</strong></td>
+                <td colspan=2><strong>Tutto</strong></td>
+            </tr>
             <tr>
                 <td><strong>Progetto</strong></td>
                 <td><strong>Mensile</strong></td>
@@ -80,23 +85,20 @@
                 <tr>
                     <th scope="row">{{ p.name }}</th>
                     <td>
-                        <a href="{% url 'project_weekly_csv' p.identification_code %}">
-                            Scarica
-                        </a>
+                        <a href="{% url 'project_csv' 'M' p.identification_code 'latest' %}">Scarica</a>
                     </td>
                     <td>
-                        <a href="{% url 'project_weekly_csv' p.identification_code %}">
-                            Scarica
-                        </a>
+                        <a href="{% url 'project_csv' 'W' p.identification_code 'latest' %}">Scarica</a>
                     </td>
                     <td>
-                            Scarica
+                        <a href="{% url 'project_csv' 'M' p.identification_code 'all' %}">Scarica</a>
                     </td>
                     <td>
-                            Scarica
+                        <a href="{% url 'project_csv' 'W' p.identification_code 'all' %}">Scarica</a>
                     </td>
                 </tr>
 
             {% endfor %}
-
+        </tbody>
+    </table>
 {% endblock content %}

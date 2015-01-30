@@ -11,8 +11,8 @@ from django.views.generic import TemplateView, RedirectView
 # load admin modules
 from django.contrib import admin
 
-from .views import UserViewSet, GroupViewSet, WorkerViewSet, ProjectViewSet, ActivityViewSet, WorkerMonthlyCSVView, \
-    ProjectMonthlyCSVView, OverviewCSVView, ReportsView, ProjectWeeklyCSVView
+from .views import UserViewSet, GroupViewSet, WorkerViewSet, ProjectViewSet, ActivityViewSet, WorkerCSVView, \
+    ProjectCSVView, OverviewCSVView, ReportsView
 
 admin.autodiscover()
 
@@ -39,11 +39,10 @@ urls = (
     # csv reports
     url(r'^reports/$', login_required(ReportsView.as_view(template_name="reports.html")), name="reports"),
     # reports workers
-    url(r'^reports/worker/(?P<breakdown_type>[\w-]+)/(?P<worker>[\w-]+)_(?P<type>[\w-]+).csv$', WorkerMonthlyCSVView.as_view(), name='worker_csv'),
-    # url(r'^reports/worker/weekly/(?P<worker>[\w-]+).csv$', WorkerWeeklyCSVView.as_view(), name='worker_weekly_csv'),
+    url(r'^reports/worker/(?P<breakdown_type>[\w-]+)/(?P<worker>[\w-]+)_(?P<period_type>[\w-]+).csv$', WorkerCSVView.as_view(), name='worker_csv'),
     # reports projects
-    url(r'^reports/project/(?P<project>[\w-]+).csv$', ProjectMonthlyCSVView.as_view(), name='project_monthly_csv'),
-    url(r'^reports/project/weekly/(?P<project>[\w-]+).csv$', ProjectWeeklyCSVView.as_view(), name='project_weekly_csv'),
+    url(r'^reports/project/(?P<breakdown_type>[\w-]+)/(?P<project>[\w-]+)_(?P<period_type>[\w-]+).csv$', ProjectCSVView.as_view(), name='project_csv'),
+    # url(r'^reports/project/weekly/(?P<project>[\w-]+).csv$', ProjectWeeklyCSVView.as_view(), name='project_weekly_csv'),
     # overview
     url(r'^report/overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
 )
