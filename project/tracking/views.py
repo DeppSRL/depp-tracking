@@ -67,6 +67,7 @@ class ReportsView(TemplateView):
 class CSVView(View):
     breakdown_type = None
     period_type = None
+    only_latest_year = None
     breakdowns = []
 
     def get_csv_filename(self):
@@ -85,6 +86,16 @@ class CSVView(View):
 
     def write_csv(self, response):
         raise NotImplementedError
+
+    def get_request_params(self):
+        # sets self params based on kwargs
+
+        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
+        self.period_type = self.kwargs.get('period_type',None)
+
+        self.only_latest_year = True
+        if self.period_type == 'all':
+            self.only_latest_year = False
 
     def get(self, request, *args, **kwargs):
         # Create the HttpResponse object with the appropriate CSV header.
@@ -137,15 +148,8 @@ class WorkerCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-
-        self.period_type = self.kwargs.get('period_type',None)
-
-        only_latest_year = True
-        if self.period_type == 'all':
-            only_latest_year = False
-
-        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
-        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=only_latest_year)
+        self.get_request_params()
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
         self.worker = self.kwargs.get('worker','')
 
         if self.worker not in self.hours.keys():
@@ -195,14 +199,9 @@ class ProjectCSVView(CSVView):
 
 
     def get(self, request, *args, **kwargs):
-        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
-        self.period_type = self.kwargs.get('period_type',None)
 
-        only_latest_year = True
-        if self.period_type == 'all':
-            only_latest_year = False
-
-        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=only_latest_year)
+        self.get_request_params()
+        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
         self.project = self.kwargs.get('project','')
         self.projects = sorted(
             list(
@@ -274,5 +273,7 @@ class OverviewCSVView(CSVView):
             writer.writerow(row)
 
     def get(self, request, *args, **kwargs):
-        self.hours = HoursDict(exclude_admin=True)
+
+        self.get_request_params()
+        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
         return super(OverviewCSVView, self).get(request, *args, **kwargs)
