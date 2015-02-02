@@ -162,6 +162,7 @@ class HoursDict(OrderedDict):
         """
         latest_year = datetime.datetime.now().year
         exclude_admin = True
+        only_latest_year = False
 
         if 'only_latest_year' in kwargs:
             only_latest_year = kwargs.pop('only_latest_year', False)
@@ -218,12 +219,12 @@ class HoursDict(OrderedDict):
                 sd = OrderedDict(sorted(self[worker_username][project_code].items(), key=lambda t: t[0]))
                 self[worker_username][project_code] = sd
 
-    def add_simple_activities(self, a, wid, pid, breakdown_type='M'):
+    def add_simple_activities(self, activities, worker_username, project_code, breakdown_type='M'):
         """
         Add simple activities breakdown to self
-        :param a:              Activity array
-        :param wid:            Worker ID (username)
-        :param pid:            Project ID
+        :param activities:              Activity array
+        :param worker_username:            Worker ID (username)
+        :param project_code:            Project ID
         :param breakdown_type: M or W
         :return: None
         """
@@ -231,7 +232,7 @@ class HoursDict(OrderedDict):
 
         if breakdown_type == 'W':
             # computes daily breakdowns for worked hours
-            a_hours = a.extra(
+            a_hours = activities.extra(
                 {'day':conns.ops.date_trunc_sql('day', 'activity_date')}
             ).values('day').annotate(hsum=Sum('hours'))
 
@@ -240,23 +241,22 @@ class HoursDict(OrderedDict):
             for ah in a_hours:
                 d = ah['day']
                 w = Week.withdate(d)
-                w_iso = w.isoformat()
                 week = w.monday().strftime("%Y-%m-%d")
                 if Week.thisweek() - w <= settings.PAST_WEEKS_IN_REPORTS:
-                    if week not in self[wid][pid]:
-                        self[wid][pid][week] = 0
-                    self[wid][pid][week] += ah['hsum']
+                    if week not in self[worker_username][project_code]:
+                        self[worker_username][project_code][week] = 0
+                    self[worker_username][project_code][week] += ah['hsum']
         else:
             # computes monthly breakdowns for worked hours
-            a_hours = a.extra(
+            a_hours = activities.extra(
                 {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
             ).values('month').annotate(hsum=Sum('hours'))
 
             for ah in a_hours:
                 ah_month = ah['month'].strftime("%Y-%m-%d")
-                if ah_month not in self[wid][pid]:
-                    self[wid][pid][ah_month] = 0
-                self[wid][pid][ah_month] += ah['hsum']
+                if ah_month not in self[worker_username][project_code]:
+                    self[worker_username][project_code][ah_month] = 0
+                self[worker_username][project_code][ah_month] += ah['hsum']
 
     def add_weekly_activities(self, a, wid, pid, breakdown_type='M'):
         """
