@@ -247,20 +247,24 @@ class HoursDict(OrderedDict):
         :return: sd
         """
         sd = OrderedDict()
-        if breakdown_type == 'W':
-            end_date = Week.withdate(datetime.date.today()).monday()
 
-            if only_latest_year:
-                # if latest year: first week is the week of the Jan 1st
-                start_day = Week.withdate(datetime.datetime.strptime('{}-01-01'.format(datetime.date.today().year), self.key_date_format)).monday()
+        end_date = Week.withdate(datetime.date.today()).monday()
+        if only_latest_year:
+            # starts from 1 Jan if breakdown on months, else on the monday of the week of the 1st Jan
+            if breakdown_type == "W":
+                start_day = Week.withdate(datetime.datetime.strptime('{}-01-01'.format(datetime.date.today().year),
+                                                                     self.key_date_format)).monday()
             else:
-                # else: first week is oldest week in the db for activity
-                start_day = Week.withdate(Activity.objects.all().order_by('activity_date')[0].activity_date).monday()
+                start_day = datetime.datetime.strptime('{}-01-01'.format(datetime.date.today().year),
+                                                       self.key_date_format).date()
+        else:
+            # else: first week is oldest week in the db for activity
+            start_day = Week.withdate(Activity.objects.all().order_by('activity_date')[0].activity_date).monday()
 
-            dates = itertools.islice(self.date_generator(breakdown_type, start_day, end_date),0, None)
+        dates = itertools.islice(self.date_generator(breakdown_type, start_day, end_date), 0, None)
 
-            for day in dates:
-                sd[day.strftime(self.key_date_format)] = 0
+        for day in dates:
+            sd[day.strftime(self.key_date_format)] = 0
 
         return sd
 
@@ -271,7 +275,14 @@ class HoursDict(OrderedDict):
             if breakdown_type == "W":
                 from_date = from_date + datetime.timedelta(days=7)
             else:
-                pass
+                def add_one_month(dt0):
+                    dt1 = dt0.replace(year=dt0.year, month=dt0.month, day=1)
+                    dt2 = dt1 + datetime.timedelta(days=32)
+                    dt3 = dt2.replace(year=dt2.year, month=dt2.month, day=1)
+                    return dt3
+
+                from_date = add_one_month(from_date)
+
 
     def add_simple_activities(self, activities, worker_username, project_code, breakdown_type='M'):
         """
