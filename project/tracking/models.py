@@ -9,11 +9,13 @@ from django.db import models, connections
 from django.db.models import Sum, Min, Max
 from django.utils.translation import ugettext_lazy as _
 from isoweek import Week
+import itertools
 from model_utils import Choices
 import recurrence.fields
 from .behaviors import Dateframeable
 
 __author__ = 'guglielmo'
+
 
 class Worker(models.Model):
     TYPES = Choices(
@@ -29,9 +31,12 @@ class Worker(models.Model):
     )
 
     user = models.OneToOneField(User)
-    worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True, help_text=_("The type of worker"))
-    contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True, help_text=_("The type of contract between the worker and the company"))
-    time_perc = models.IntegerField(_('time percentage'), blank=True, null=True, help_text=_("Time percentage (100% = full time)"))
+    worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True,
+                                      help_text=_("The type of worker"))
+    contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True,
+                                        help_text=_("The type of contract between the worker and the company"))
+    time_perc = models.IntegerField(_('time percentage'), blank=True, null=True,
+                                    help_text=_("Time percentage (100% = full time)"))
 
     def is_manager(self):
         g = Group.objects.get(name__iexact='manager')
@@ -43,7 +48,6 @@ class Worker(models.Model):
 
     def is_superuser(self):
         return self.user.is_superuser
-
 
 
     def __unicode__(self):
@@ -73,15 +77,22 @@ class Project(Dateframeable, models.Model):
     )
 
     name = models.CharField(_("name"), max_length=128, help_text=_("A project's name"))
-    identification_code = models.CharField(_("identification code"), max_length=5, help_text=_("An alphanumeric identification code, max 5 chars"))
+    identification_code = models.CharField(_("identification code"), max_length=5,
+                                           help_text=_("An alphanumeric identification code, max 5 chars"))
     description = models.TextField(_("description"), help_text=_("An extensive description of the project"))
-    resources = models.TextField(_("resources"), help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
+    resources = models.TextField(_("resources"),
+                                 help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
     customer = models.CharField(_("customer"), max_length=128, help_text=_("The identifier of the customer"))
-    managers = models.ManyToManyField(Worker, related_name='manager_projects', help_text=_("The manager(s) of this project"))
-    workers = models.ManyToManyField(Worker, related_name='worker_projects', help_text=_("The worker(s) of this project"))
-    project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_("Whether the project is an ongoing activity or it has a start and an end date"))
-    phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True, help_text=_("The status of advancement of the project"))
-    status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True, help_text=_("Whether the project is active or closed"))
+    managers = models.ManyToManyField(Worker, related_name='manager_projects',
+                                      help_text=_("The manager(s) of this project"))
+    workers = models.ManyToManyField(Worker, related_name='worker_projects',
+                                     help_text=_("The worker(s) of this project"))
+    project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_(
+        "Whether the project is an ongoing activity or it has a start and an end date"))
+    phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True,
+                                help_text=_("The status of advancement of the project"))
+    status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True,
+                                 help_text=_("Whether the project is active or closed"))
 
     def __unicode__(self):
         return u"{0} ({1})".format(self.name, self.identification_code)
@@ -107,9 +118,12 @@ class BaseActivity(models.Model):
     )
 
     project = models.ForeignKey(Project, verbose_name=_("project"))
-    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
-    description = models.CharField(_("description"), max_length=256, help_text=_("A very brief description of the activity (max 256 chars)."))
-    hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1, help_text=_("Number of hours worked, can be a decimal"))
+    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True,
+                                        help_text=_("Select the type of activity. Don't be picky."))
+    description = models.CharField(_("description"), max_length=256,
+                                   help_text=_("A very brief description of the activity (max 256 chars)."))
+    hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1,
+                                help_text=_("Number of hours worked, can be a decimal"))
 
     def __unicode__(self):
         return u"{0}".format(self.description)
@@ -117,8 +131,9 @@ class BaseActivity(models.Model):
     class Meta:
         abstract = True
 
+
 class Activity(BaseActivity):
-    worker = models.ForeignKey(Worker, verbose_name=_("worker"),  related_name='assigned_activities')
+    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_activities')
     owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_activities')
     activity_date = models.DateField(_("activity date"), help_text=_("Pick up the exact date of the activity."))
 
@@ -128,6 +143,7 @@ class Activity(BaseActivity):
     class Meta:
         verbose_name = _("Activity")
         verbose_name_plural = _("Activities")
+
 
 class WeeklyActivity(BaseActivity):
     worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_weekly_activities')
@@ -141,10 +157,12 @@ class WeeklyActivity(BaseActivity):
         verbose_name = _("Weekly activity")
         verbose_name_plural = _("Weekly activities")
 
+
 class RecurringActivity(BaseActivity):
     worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_recurring_activities')
     owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_recurring_activities')
-    start_date = models.DateField(_("start date"), null=False, blank=False, default=0, help_text=_("When the activity started."))
+    start_date = models.DateField(_("start date"), null=False, blank=False, default=0,
+                                  help_text=_("When the activity started."))
     end_date = models.DateField(_("end_date"), null=True, blank=True, help_text=_("When the activity will end."))
     recurrences = recurrence.fields.RecurrenceField(_("recurrences"), blank=True, null=True)
 
@@ -154,6 +172,7 @@ class RecurringActivity(BaseActivity):
 
 
 class HoursDict(OrderedDict):
+    key_date_format = "%Y-%m-%d"
 
     def __init__(self, *args, **kwargs):
         """
@@ -186,13 +205,13 @@ class HoursDict(OrderedDict):
             for project in worker.worker_projects.all():
 
                 project_code = project.identification_code
-                self[worker_username][project_code] = OrderedDict()
+                self[worker_username][project_code] = self.generate_base_dict(breakdown_type, only_latest_year)
 
                 #
                 # computing hours breakdowns (based on breakdown_type: monthly|weekly)
                 #
 
-                activities = Activity.objects.filter(worker=worker, project=project)
+                activities = Activity.objects.filter(worker=worker, project=project).order_by('activity_date')
 
                 # weekly activities
                 weekly_activities = WeeklyActivity.objects.filter(
@@ -203,7 +222,6 @@ class HoursDict(OrderedDict):
                 recurring_activities = RecurringActivity.objects.filter(
                     worker=worker, project=project
                 ).order_by('start_date')
-
 
                 # if only_latest_year flag is true, apply the year filter
                 if only_latest_year:
@@ -219,6 +237,42 @@ class HoursDict(OrderedDict):
                 sd = OrderedDict(sorted(self[worker_username][project_code].items(), key=lambda t: t[0]))
                 self[worker_username][project_code] = sd
 
+    def generate_base_dict(self, breakdown_type, only_latest_year):
+        """
+        Generates base dictionary for hours, adding every needed date to the dict with 0 hours
+        so the final dict doesn't have blank columns
+
+        :param breakdown_type: M or W
+        :param only_latest_year: True or False
+        :return: sd
+        """
+        sd = OrderedDict()
+        if breakdown_type == 'W':
+            end_date = Week.withdate(datetime.date.today()).monday()
+
+            if only_latest_year:
+                # if latest year: first week is the week of the Jan 1st
+                start_day = Week.withdate(datetime.datetime.strptime('{}-01-01'.format(datetime.date.today().year), self.key_date_format)).monday()
+            else:
+                # else: first week is oldest week in the db for activity
+                start_day = Week.withdate(Activity.objects.all().order_by('activity_date')[0].activity_date).monday()
+
+            dates = itertools.islice(self.date_generator(breakdown_type, start_day, end_date),0, None)
+
+            for day in dates:
+                sd[day.strftime(self.key_date_format)] = 0
+
+        return sd
+
+    def date_generator(self, breakdown_type, start_date, end_date):
+        from_date = start_date
+        while from_date <= end_date:
+            yield from_date
+            if breakdown_type == "W":
+                from_date = from_date + datetime.timedelta(days=7)
+            else:
+                pass
+
     def add_simple_activities(self, activities, worker_username, project_code, breakdown_type='M'):
         """
         Add simple activities breakdown to self
@@ -232,28 +286,33 @@ class HoursDict(OrderedDict):
 
         if breakdown_type == 'W':
             # computes daily breakdowns for worked hours
-            a_hours = activities.extra(
-                {'day':conns.ops.date_trunc_sql('day', 'activity_date')}
+            activity_hours = activities.extra(
+                {'day': conns.ops.date_trunc_sql('day', 'activity_date')}
             ).values('day').annotate(hsum=Sum('hours'))
 
             # rearrange in weekly breakdowns,
             # limited to last PAST_WEEKS_IN_REPORTS
-            for ah in a_hours:
-                d = ah['day']
-                w = Week.withdate(d)
-                week = w.monday().strftime("%Y-%m-%d")
-                if Week.thisweek() - w <= settings.PAST_WEEKS_IN_REPORTS:
-                    if week not in self[worker_username][project_code]:
-                        self[worker_username][project_code][week] = 0
-                    self[worker_username][project_code][week] += ah['hsum']
+
+            current_week = Week.thisweek()
+            for ah in activity_hours:
+                day = ah['day']
+                week = Week.withdate(day)
+                week_monday_date = week.monday().strftime(self.key_date_format)
+                if current_week - week <= settings.PAST_WEEKS_IN_REPORTS:
+                    # creates column in the csv if not present
+                    if week_monday_date not in self[worker_username][project_code]:
+                        self[worker_username][project_code][week_monday_date] = 0
+
+                    # sums up activity hours
+                    self[worker_username][project_code][week_monday_date] += ah['hsum']
         else:
             # computes monthly breakdowns for worked hours
-            a_hours = activities.extra(
-                {'month':conns.ops.date_trunc_sql('month', 'activity_date')}
+            activity_hours = activities.extra(
+                {'month': conns.ops.date_trunc_sql('month', 'activity_date')}
             ).values('month').annotate(hsum=Sum('hours'))
 
-            for ah in a_hours:
-                ah_month = ah['month'].strftime("%Y-%m-%d")
+            for ah in activity_hours:
+                ah_month = ah['month'].strftime(self.key_date_format)
                 if ah_month not in self[worker_username][project_code]:
                     self[worker_username][project_code][ah_month] = 0
                 self[worker_username][project_code][ah_month] += ah['hsum']
@@ -273,7 +332,7 @@ class HoursDict(OrderedDict):
                 # limited to last PAST_WEEKS_IN_REPORTS
                 w = Week.fromstring(aw.week)
                 if Week.thisweek() - w <= settings.PAST_WEEKS_IN_REPORTS:
-                    week = w.monday().strftime("%Y-%m-%d")
+                    week = w.monday().strftime(self.key_date_format)
                     if week not in self[wid][pid]:
                         self[wid][pid][week] = 0
                     self[wid][pid][week] += aw.hours
@@ -300,8 +359,8 @@ class HoursDict(OrderedDict):
             # extract dates range (from-to), as datetime
             # extraction is limited to current datetime
             a_dates_limits = a.aggregate(from_date=Min('start_date'), to_date=Max('end_date'))
-            from_date = parse(a_dates_limits['from_date'].strftime("%Y-%m-%d"))
-            to_date = parse(a_dates_limits['to_date'].strftime("%Y-%m-%d"))
+            from_date = parse(a_dates_limits['from_date'].strftime(self.key_date_format))
+            to_date = parse(a_dates_limits['to_date'].strftime(self.key_date_format))
             if to_date > datetime.datetime.now():
                 to_date = datetime.datetime.now()
 
@@ -323,18 +382,18 @@ class HoursDict(OrderedDict):
                 # for each week interval, the hours
                 # worked on all activities are summed
                 for i, d_week in enumerate(d_weeks[:-1]):
-                    week = d_week.strftime("%Y-%m-%d")
+                    week = d_week.strftime(self.key_date_format)
                     for ar in a:
                         a_start_date = datetime.datetime(*ar.start_date.timetuple()[:-4])
                         a_end_date = datetime.datetime(*ar.end_date.timetuple()[:-4])
-                        if a_start_date <= d_weeks[i+1] and a_end_date >= d_week:
+                        if a_start_date <= d_weeks[i + 1] and a_end_date >= d_week:
                             n_recurrences = len(
                                 ar.recurrences.to_dateutil_rruleset(
-                                  dtstart=max(d_week, a_start_date),
-                                  dtend=min(d_weeks[i+1], a_end_date)
+                                    dtstart=max(d_week, a_start_date),
+                                    dtend=min(d_weeks[i + 1], a_end_date)
                                 ).between(
                                     max(d_week, a_start_date),
-                                    min(d_weeks[i+1], a_end_date),
+                                    min(d_weeks[i + 1], a_end_date),
                                     inc=False
                                 )
                             )
@@ -366,14 +425,14 @@ class HoursDict(OrderedDict):
                     for ar in a:
                         a_start_date = datetime.datetime(*ar.start_date.timetuple()[:-4])
                         a_end_date = datetime.datetime(*ar.end_date.timetuple()[:-4])
-                        if a_start_date <= d_months[i+1] and a_end_date >= d_month:
+                        if a_start_date <= d_months[i + 1] and a_end_date >= d_month:
                             n_recurrences = len(
                                 ar.recurrences.to_dateutil_rruleset(
-                                  dtstart=max(d_month, a_start_date),
-                                  dtend=min(d_months[i+1], a_end_date)
+                                    dtstart=max(d_month, a_start_date),
+                                    dtend=min(d_months[i + 1], a_end_date)
                                 ).between(
                                     max(d_month, a_start_date),
-                                    min(d_months[i+1], a_end_date),
+                                    min(d_months[i + 1], a_end_date),
                                     inc=False
                                 )
                             )

@@ -145,7 +145,6 @@ class WorkerCSVView(CSVView):
 
             writer.writerow(row)
 
-
     def get(self, request, *args, **kwargs):
         self.get_request_params()
         self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
