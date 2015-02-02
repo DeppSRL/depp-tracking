@@ -199,7 +199,7 @@ class ProjectCSVView(CSVView):
     def get(self, request, *args, **kwargs):
 
         self.get_request_params()
-        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
         self.project = self.kwargs.get('project','')
         self.projects = sorted(
             list(
@@ -280,5 +280,5 @@ class OverviewCSVView(CSVView):
             self.only_latest_year = False
 
         self.get_request_params()
-        self.hours = HoursDict(exclude_admin=True, breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
         return super(OverviewCSVView, self).get(request, *args, **kwargs)

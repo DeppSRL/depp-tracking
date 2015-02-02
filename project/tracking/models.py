@@ -49,7 +49,6 @@ class Worker(models.Model):
     def is_superuser(self):
         return self.user.is_superuser
 
-
     def __unicode__(self):
         return self.user.username
 
@@ -180,14 +179,10 @@ class HoursDict(OrderedDict):
         already computed by months.
         """
         latest_year = datetime.datetime.now().year
-        exclude_admin = True
         only_latest_year = False
 
         if 'only_latest_year' in kwargs:
             only_latest_year = kwargs.pop('only_latest_year', False)
-
-        if 'exclude_admin' in kwargs:
-            exclude_admin = bool(kwargs.pop('exclude_admin'))
 
         breakdown_type = 'M'
         if 'breakdown_type' in kwargs:
@@ -198,7 +193,7 @@ class HoursDict(OrderedDict):
         workers = Worker.objects.all().order_by('user__username')
         for worker in workers:
             worker_username = worker.user.username
-            if exclude_admin and worker.user.username == 'admin':
+            if worker.user.username == 'admin':
                 continue
 
             self[worker_username] = OrderedDict()
