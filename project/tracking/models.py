@@ -6,7 +6,7 @@ from dateutil.rrule import rrule, MONTHLY, WEEKLY
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.db import models, connections
-from django.db.models import Sum, Min, Max
+from django.db.models import Sum, Min, Max, Q
 from django.utils.translation import ugettext_lazy as _
 from isoweek import Week
 import itertools
@@ -92,6 +92,14 @@ class Project(Dateframeable, models.Model):
                                 help_text=_("The status of advancement of the project"))
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True,
                                  help_text=_("Whether the project is active or closed"))
+
+    @staticmethod
+    def latest_projects():
+        """
+        Returns project that have no end date or the end date is in the current year
+        """
+        return Project.objects.\
+                filter(Q(end_date__gte='{}-01'.format(datetime.datetime.now().year)) | Q(end_date__isnull=True) | Q(end_date=u'') )
 
     def __unicode__(self):
         return u"{0} ({1})".format(self.name, self.identification_code)

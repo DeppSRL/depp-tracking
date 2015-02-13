@@ -53,12 +53,11 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
 
 class ReportsView(TemplateView):
-
     def get_context_data(self, **kwargs):
         context = super(ReportsView, self).get_context_data(**kwargs)
 
         context['workers'] = Worker.objects.exclude(user__username='admin').order_by('user__username')
-        context['projects'] = Project.objects.order_by('-status','name')
+        context['projects'] = Project.objects.order_by('-status', 'name')
 
         return context
 
@@ -89,8 +88,8 @@ class CSVView(View):
     def get_request_params(self):
         # sets self params based on kwargs
 
-        self.breakdown_type  = self.kwargs.get('breakdown_type',None)
-        self.period_type = self.kwargs.get('period_type',None)
+        self.breakdown_type = self.kwargs.get('breakdown_type', None)
+        self.period_type = self.kwargs.get('period_type', None)
 
         self.only_latest_year = True
         if self.period_type == 'all':
@@ -132,7 +131,14 @@ class WorkerCSVView(CSVView):
 
         self.breakdowns.insert(0, u"")
 
+        current_projects_codes = self.projects = Project.latest_projects().\
+                order_by('identification_code').values_list('identification_code',flat=True)
+
         for p_code, data in worker_hours.items():
+            # if only latest yr show hours for latest projects
+            if self.only_latest_year and p_code not in current_projects_codes:
+                continue
+
             row = []
             for bd in self.breakdowns:
                 if bd == u"":
@@ -148,7 +154,7 @@ class WorkerCSVView(CSVView):
     def get(self, request, *args, **kwargs):
         self.get_request_params()
         self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
-        self.worker = self.kwargs.get('worker','')
+        self.worker = self.kwargs.get('worker', '')
 
         if self.worker not in self.hours.keys():
             raise Http404
@@ -195,12 +201,11 @@ class ProjectCSVView(CSVView):
 
             writer.writerow(row)
 
-
     def get(self, request, *args, **kwargs):
 
         self.get_request_params()
         self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
-        self.project = self.kwargs.get('project','')
+        self.project = self.kwargs.get('project', '')
         self.projects = sorted(
             list(
                 set(
@@ -211,9 +216,9 @@ class ProjectCSVView(CSVView):
         self.projects_hours = OrderedDict([
             (p, OrderedDict([
                 (w, self.hours[w][p]) for w in self.hours.keys() if p in self.hours[w]
-                ])
-            ) for p in self.projects
             ])
+            ) for p in self.projects
+        ])
 
         if self.project not in self.projects:
             raise Http404
@@ -222,7 +227,6 @@ class ProjectCSVView(CSVView):
 
 
 class OverviewCSVView(CSVView):
-
     def get_csv_filename(self):
         return 'report_overview'
 
@@ -243,19 +247,25 @@ class OverviewCSVView(CSVView):
         self.workers = self.hours.keys()
         self.workers.insert(0, u"")
 
-        self.projects = sorted(
-            list(
-                set(
-                    val for sublist in [wh.keys() for wh in self.hours.values()] for val in sublist
+        # if only latest year -> the csv will have only rows for active project
+        if self.only_latest_year:
+            self.projects = Project.latest_projects().\
+                order_by('identification_code').values_list('identification_code',flat=True)
+        else:
+            self.projects = sorted(
+                list(
+                    set(
+                        val for sublist in [wh.keys() for wh in self.hours.values()] for val in sublist
+                    )
                 )
             )
-        )
+
         self.projects_hours = OrderedDict([
             (p, OrderedDict([
                 (w, self.hours[w][p]) for w in self.hours.keys() if p in self.hours[w]
-                ])
-            ) for p in self.projects
             ])
+            ) for p in self.projects
+        ])
 
         for p_code, data in self.projects_hours.items():
             row = []
@@ -271,9 +281,9 @@ class OverviewCSVView(CSVView):
             writer.writerow(row)
 
     def get(self, request, *args, **kwargs):
-         # sets self params based on kwargs
+    # sets self params based on kwargs
 
-        self.period_type = self.kwargs.get('period_type',None)
+        self.period_type = self.kwargs.get('period_type', None)
 
         self.only_latest_year = True
         if self.period_type == 'all':
