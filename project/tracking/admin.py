@@ -18,30 +18,31 @@ class ProjectAdminForm(forms.ModelForm):
     Custom form for Project administration: managers and workers widgets
     are changed to more user-friendly checkboxes.
     """
+
     class Meta:
         model = Project
         widgets = {
-          'managers':forms.CheckboxSelectMultiple,
-          'workers':forms.CheckboxSelectMultiple
+            'managers': forms.CheckboxSelectMultiple,
+            'workers': forms.CheckboxSelectMultiple
         }
 
-class WorkerAdmin(admin.ModelAdmin):
 
+class WorkerAdmin(admin.ModelAdmin):
     def report_w_latest_url(self, obj):
-        url = reverse('worker_csv', args=['W',obj.user.username,'latest'])
+        url = reverse('worker_csv', args=['W', obj.user.username, 'latest'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     def report_m_latest_url(self, obj):
-        url = reverse('worker_csv', args=['M',obj.user.username,'latest'])
+        url = reverse('worker_csv', args=['M', obj.user.username, 'latest'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
 
     def report_w_all_url(self, obj):
-        url = reverse('worker_csv', args=['W',obj.user.username,'all'])
+        url = reverse('worker_csv', args=['W', obj.user.username, 'all'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     def report_m_all_url(self, obj):
-        url = reverse('worker_csv', args=['M',obj.user.username,'all'])
+        url = reverse('worker_csv', args=['M', obj.user.username, 'all'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     report_w_all_url.allow_tags = True
@@ -58,21 +59,20 @@ class WorkerAdmin(admin.ModelAdmin):
 
 
 class ProjectAdmin(admin.ModelAdmin):
-    
     def report_w_latest_url(self, obj):
-        url = reverse('project_csv', args=['W',obj.identification_code,'latest'])
+        url = reverse('project_csv', args=['W', obj.identification_code, 'latest'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     def report_m_latest_url(self, obj):
-        url = reverse('project_csv', args=['M',obj.identification_code,'latest'])
+        url = reverse('project_csv', args=['M', obj.identification_code, 'latest'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     def report_w_all_url(self, obj):
-        url = reverse('project_csv', args=['W',obj.identification_code,'all'])
+        url = reverse('project_csv', args=['W', obj.identification_code, 'all'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     def report_m_all_url(self, obj):
-        url = reverse('project_csv', args=['M',obj.identification_code,'all'])
+        url = reverse('project_csv', args=['M', obj.identification_code, 'all'])
         return u'<a href="{0}">scarica</a>'.format(url)
 
     report_w_all_url.allow_tags = True
@@ -89,7 +89,6 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ('phase', 'status', 'project_type')
     list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
     form = ProjectAdminForm
-
 
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
@@ -129,7 +128,6 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 class BaseActivityAdmin(admin.ModelAdmin):
-
     def get_queryset(self, request):
         qs = super(BaseActivityAdmin, self).queryset(request)
         if request.user.is_superuser:
@@ -164,25 +162,26 @@ class BaseActivityAdmin(admin.ModelAdmin):
         # employees can only add their own activities
         if db_field.name == 'worker':
             if not request.user.worker.is_manager() \
-                    and not request.user.worker.is_project_manager() \
-                    and not request.user.is_superuser:
+                and not request.user.worker.is_project_manager() \
+                and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(id=request.user.worker.id).distinct()
 
         # employees can only see projects they work in or manage
         if db_field.name == 'project':
             # order the project field choices by name
             field.queryset = field.queryset.order_by('name')
-            
+
             if request.user.worker.is_manager() and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(
                     Q(managers=request.user.worker) | Q(workers=request.user.worker)
                 ).distinct()
         return field
 
+
 class ActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
     ordering = ['-activity_date']
-    search_fields = ['description',]
+    search_fields = ['description', ]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
 
 
@@ -193,18 +192,20 @@ class RecurringActivityAdmin(BaseActivityAdmin):
 
 
 class WeeklyAdminForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
-        locale.setlocale(locale.LC_ALL, "{0}.UTF-8".format(settings.LANGUAGE_CODE.replace("-","_")))
+        locale.setlocale(locale.LC_ALL, "{0}.UTF-8".format(settings.LANGUAGE_CODE.replace("-", "_")))
         from_word = _("from")
         w = Week.thisweek()
-        WEEKS = [(w.isoformat(), _("this week"))] + [((w - i).isoformat(), _("from") + (w-i).monday().strftime(" %d %B")) for i in range(1, settings.PAST_WEEKS_IN_REPORTS)]
+        WEEKS = [(w.isoformat(), _("this week"))] + [
+            ((w - i).isoformat(), _("from") + (w - i).monday().strftime(" %d %B")) for i in
+            range(1, settings.PAST_WEEKS_IN_REPORTS)]
         super(WeeklyAdminForm, self).__init__(*args, **kwargs)
 
-        self.fields['week'].widget = forms.Select(choices = WEEKS)
+        self.fields['week'].widget = forms.Select(choices=WEEKS)
 
     class Meta:
         model = WeeklyActivity
+
 
 class WeeklyActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'week']
@@ -212,6 +213,7 @@ class WeeklyActivityAdmin(BaseActivityAdmin):
     ordering = ['-week']
 
     form = WeeklyAdminForm
+
 
 admin.site.register(Worker, WorkerAdmin)
 admin.site.register(Project, ProjectAdmin)
