@@ -1,4 +1,5 @@
 # coding=utf-8
+import datetime
 from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,6 +12,30 @@ from isoweek import Week
 from .models import Project, Worker, Activity, RecurringActivity, WeeklyActivity
 
 __author__ = 'guglielmo'
+
+
+class InitialFieldsMixin(object):
+    """
+    Grants the possibility to set inizial values to form fields
+    """
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = admin.ModelAdmin.get_form(self, request, obj, **kwargs)
+        if not hasattr(self.__class__, 'initial'):
+            return form
+
+        old_init = form.__init__
+
+        def new_init(_self, *args, **kwargs):
+            if 'instance' not in kwargs:
+                for field_name, callback in self.__class__.initial.iteritems():
+                    kwargs['initial'][field_name] = callback(self, request,
+                                                             obj, **kwargs)
+            return old_init(_self, *args, **kwargs)
+
+        form.__init__ = new_init
+
+        return form
 
 
 class ProjectAdminForm(forms.ModelForm):
@@ -178,11 +203,14 @@ class BaseActivityAdmin(admin.ModelAdmin):
         return field
 
 
-class ActivityAdmin(BaseActivityAdmin):
+class ActivityAdmin(InitialFieldsMixin, BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
     ordering = ['-activity_date']
     search_fields = ['description', ]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
+    # sets initial value for activity date to current date
+    initial = {'activity_date': lambda self, request,
+                                       obj, **kwargs: datetime.datetime.today()}
 
 
 class RecurringActivityAdmin(BaseActivityAdmin):

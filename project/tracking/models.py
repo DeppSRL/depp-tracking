@@ -142,7 +142,7 @@ class BaseActivity(models.Model):
 class Activity(BaseActivity):
     worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_activities')
     owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_activities')
-    activity_date = models.DateField(_("activity date"), help_text=_("Pick up the exact date of the activity."), default=datetime.datetime.today())
+    activity_date = models.DateField(_("activity date"), help_text=_("Pick up the exact date of the activity."))
 
     def __unicode__(self):
         return u"{0} ({1}h)".format(self.description, self.hours)
