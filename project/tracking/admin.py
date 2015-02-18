@@ -28,6 +28,8 @@ class InitialFieldsMixin(object):
 
         def new_init(_self, *args, **kwargs):
             if 'instance' not in kwargs:
+                if 'initial' not in kwargs.keys():
+                    kwargs['initial'] = {}
                 for field_name, callback in self.__class__.initial.iteritems():
                     kwargs['initial'][field_name] = callback(self, request,
                                                              obj, **kwargs)
@@ -209,8 +211,7 @@ class ActivityAdmin(InitialFieldsMixin, BaseActivityAdmin):
     search_fields = ['description', ]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
     # sets initial value for activity date to current date
-    initial = {'activity_date': lambda self, request,
-                                       obj, **kwargs: datetime.datetime.today()}
+    initial = {'activity_date': lambda self, request, obj, **kwargs: datetime.datetime.today()}
 
 
 class RecurringActivityAdmin(BaseActivityAdmin):
