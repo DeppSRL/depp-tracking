@@ -205,7 +205,7 @@ class HoursDict(OrderedDict):
                 continue
 
             self[worker_username] = OrderedDict()
-            for project in worker.worker_projects.all():
+            for project in worker.worker_projects.all().order_by('identification_code'):
 
                 project_code = project.identification_code
                 self[worker_username][project_code] = self.generate_base_dict(breakdown_type, only_latest_year)
