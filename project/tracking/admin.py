@@ -112,7 +112,7 @@ class ProjectAdmin(admin.ModelAdmin):
     report_w_latest_url.short_description = "Report settimanale anno corrente"
     report_m_latest_url.short_description = "Report mensile anno corrente"
 
-    search_fields = ['^description', 'identification_code']
+    search_fields = ['description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')
     list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
     form = ProjectAdminForm
@@ -207,6 +207,7 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
 class ActivityAdmin(InitialFieldsMixin, BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
+    # raw_id_fields = ['project',]
     ordering = ['-activity_date']
     search_fields = ['description', ]
     list_filter = ['worker', 'project', 'activity_type', 'activity_date', 'project__status']
