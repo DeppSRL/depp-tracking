@@ -208,6 +208,7 @@ class HoursDict(OrderedDict):
             for project in worker.worker_projects.all().order_by('identification_code'):
 
                 project_code = project.identification_code
+                # generate empty dict with weekdays that will be filled with data
                 self[worker_username][project_code] = self.generate_base_dict(breakdown_type, only_latest_year)
 
                 #
@@ -331,16 +332,16 @@ class HoursDict(OrderedDict):
                     self[worker_username][project_code][ah_month] = 0
                 self[worker_username][project_code][ah_month] += ah['hsum']
 
-    def add_weekly_activities(self, a, wid, pid, breakdown_type='M'):
+    def add_weekly_activities(self, activities, wid, pid, breakdown_type='M'):
         """
         Add weekly activities breakdown to self
-        :param a:              Activity array
+        :param activities:              Activity array
         :param wid:            Worker ID (username)
         :param pid:            Project ID
         :param breakdown_type: M or W
         :return: None
         """
-        for aw in a:
+        for aw in activities:
             if breakdown_type == 'W':
                 # add hours to weekly breakdowns
                 # limited to last PAST_WEEKS_IN_REPORTS

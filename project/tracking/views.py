@@ -113,6 +113,16 @@ class WorkerCSVView(CSVView):
     hours = None
     worker = None
 
+    def get(self, request, *args, **kwargs):
+        self.get_request_params()
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
+        self.worker = self.kwargs.get('worker', '')
+
+        if self.worker not in self.hours.keys():
+            raise Http404
+
+        return super(WorkerCSVView, self).get(request, *args, **kwargs)
+
     def get_csv_filename(self):
         return 'report_worker_{0}_{1}_{2}'.format(self.worker, self.breakdown_type, self.period_type)
 
@@ -131,8 +141,8 @@ class WorkerCSVView(CSVView):
 
         self.breakdowns.insert(0, u"")
 
-        current_projects_codes = self.projects = Project.latest_projects().\
-                order_by('identification_code').values_list('identification_code',flat=True)
+        current_projects_codes = self.projects = Project.latest_projects(). \
+            order_by('identification_code').values_list('identification_code', flat=True)
 
         for p_code, data in worker_hours.items():
             # if only latest yr show hours for latest projects
@@ -150,16 +160,6 @@ class WorkerCSVView(CSVView):
                         row.append(0)
 
             writer.writerow(row)
-
-    def get(self, request, *args, **kwargs):
-        self.get_request_params()
-        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
-        self.worker = self.kwargs.get('worker', '')
-
-        if self.worker not in self.hours.keys():
-            raise Http404
-
-        return super(WorkerCSVView, self).get(request, *args, **kwargs)
 
 
 class ProjectCSVView(CSVView):
@@ -249,8 +249,8 @@ class OverviewCSVView(CSVView):
 
         # if only latest year -> the csv will have only rows for active project
         if self.only_latest_year:
-            self.projects = Project.latest_projects().\
-                order_by('identification_code').values_list('identification_code',flat=True)
+            self.projects = Project.latest_projects(). \
+                order_by('identification_code').values_list('identification_code', flat=True)
         else:
             self.projects = sorted(
                 list(
