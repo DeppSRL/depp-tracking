@@ -125,12 +125,9 @@ class BaseActivity(models.Model):
     )
 
     project = models.ForeignKey(Project, verbose_name=_("project"))
-    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True,
-                                        help_text=_("Select the type of activity. Don't be picky."))
-    description = models.CharField(_("description"), max_length=256,
-                                   help_text=_("A very brief description of the activity (max 256 chars)."))
-    hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1,
-                                help_text=_("Number of hours worked, can be a decimal"))
+    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True, help_text=_("Select the type of activity. Don't be picky."))
+    description = models.CharField(_("description"), max_length=256, blank=True, null=True, help_text=_("A very brief description of the activity (max 256 chars)."))
+    hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1, help_text=_("Number of hours worked, can be a decimal"))
 
     def __unicode__(self):
         return u"{0}".format(self.description)
