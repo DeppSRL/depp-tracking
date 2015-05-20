@@ -104,6 +104,7 @@ class BaseActivity(models.Model):
         (8, 'marketing', _('Marketing and commercial activities')),
         (9, 'internal meeting', _('Internal meeting')),
         (10, 'other', _('Other')),
+        (11, 'research', _('Research')),
     )
 
     project = models.ForeignKey(Project, verbose_name=_("project"))
