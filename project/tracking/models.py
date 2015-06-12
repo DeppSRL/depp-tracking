@@ -82,6 +82,8 @@ class Project(Dateframeable, models.Model):
     project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_("Whether the project is an ongoing activity or it has a start and an end date"))
     phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True, help_text=_("The status of advancement of the project"))
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True, help_text=_("Whether the project is active or closed"))
+    gantt_url = models.URLField(_('TeamGantt URL'), blank=True, null=True, help_text=_("URL of the project on TeamGantt"))
+    gdrive_url = models.URLField(_('GDrive URL'), blank=True, null=True, help_text=_("URL of the project on GDrive"))
 
     def __unicode__(self):
         return u"{0} ({1})".format(self.name, self.identification_code)
