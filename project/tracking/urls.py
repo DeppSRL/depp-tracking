@@ -43,6 +43,10 @@ urls = (
     url(r'^reports/worker/weekly/(?P<worker>[\w-]+).csv$', WorkerWeeklyCSVView.as_view(), name='worker_weekly_csv'),
     url(r'^reports/project/weekly/(?P<project>[\w-]+).csv$', ProjectWeeklyCSVView.as_view(), name='project_weekly_csv'),
     url(r'^report/overview.csv$', OverviewCSVView.as_view(), name='overview_csv'),
+
+    # gantt embedding
+    url(r'^gantt/$', login_required(TemplateView.as_view(template_name="gantt.html")), name="gantt"),
+
 )
 urlpatterns = patterns('', *urls)
 
