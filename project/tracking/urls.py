@@ -47,6 +47,10 @@ urls = (
 
     # overview
     url(r'^report/overview_(?P<period_type>[\w-]+).csv$', OverviewCSVView.as_view(), name='overview_csv'),
+
+    # gantt embedding
+    url(r'^gantt/$', login_required(TemplateView.as_view(template_name="gantt.html")), name="gantt"),
+
 )
 urlpatterns = patterns('', *urls)
 
