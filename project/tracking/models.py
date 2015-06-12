@@ -82,6 +82,7 @@ class Project(Dateframeable, models.Model):
     resources = models.TextField(_("resources"),
                                  help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
     customer = models.CharField(_("customer"), max_length=128, help_text=_("The identifier of the customer"))
+
     managers = models.ManyToManyField(Worker, related_name='manager_projects',
                                       help_text=_("The manager(s) of this project"))
     workers = models.ManyToManyField(Worker, related_name='worker_projects',
@@ -93,6 +94,10 @@ class Project(Dateframeable, models.Model):
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True,
                                  help_text=_("Whether the project is active or closed"))
 
+    gantt_url = models.URLField(_('TeamGantt URL'), blank=True, null=True, 
+                                help_text=_("URL of the project on TeamGantt"))
+    gdrive_url = models.URLField(_('GDrive URL'), blank=True, null=True, 
+                                 help_text=_("URL of the project on GDrive"))
     @staticmethod
     def latest_projects():
         """
