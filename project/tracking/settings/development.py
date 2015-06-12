@@ -23,9 +23,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 ########## DATABASE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DATABASES = {
-    'default': env.db('DB_DEFAULT_URL'),
-}
 ########## END DATABASE CONFIGURATION
 
 

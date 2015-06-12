@@ -155,7 +155,6 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 class BaseActivityAdmin(admin.ModelAdmin):
-
     save_on_top = True
 
     def get_queryset(self, request):
