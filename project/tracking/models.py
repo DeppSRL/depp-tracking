@@ -135,7 +135,8 @@ class BaseActivity(models.Model):
     activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True,
                                         help_text=_("Select the type of activity. Don't be picky."))
     description = models.CharField(_("description"), max_length=256,
-                                   help_text=_("A very brief description of the activity (max 256 chars)."))
+                                   help_text=_("A very brief description of the activity (max 256 chars)."),
+                                   blank=True, null=True)
     hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1,
                                 help_text=_("Number of hours worked, can be a decimal"))
 
