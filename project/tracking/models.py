@@ -14,6 +14,7 @@ from model_utils import Choices
 import recurrence.fields
 from .behaviors import Dateframeable
 
+
 __author__ = 'guglielmo'
 
 
@@ -32,11 +33,11 @@ class Worker(models.Model):
 
     user = models.OneToOneField(User)
     worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True,
-                                      help_text=_("The type of worker"))
+                                      help_text=_('The type of worker'))
     contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True,
-                                        help_text=_("The type of contract between the worker and the company"))
+                                        help_text=_('The type of contract between the worker and the company'))
     time_perc = models.IntegerField(_('time percentage'), blank=True, null=True,
-                                    help_text=_("Time percentage (100% = full time)"))
+                                    help_text=_('Time percentage (100% = full time)'))
 
     def is_manager(self):
         g = Group.objects.get(name__iexact='manager')
@@ -53,8 +54,24 @@ class Worker(models.Model):
         return self.user.username
 
     class Meta:
-        verbose_name = _("Worker")
-        verbose_name_plural = _("Workers")
+        verbose_name = _('Worker')
+        verbose_name_plural = _('Workers')
+
+
+class ProjectQuerySet(models.query.QuerySet):
+    def latest_projects(self):
+        """
+        Returns project that have no end date or the end date is in the current year
+        """
+        return self.filter(Q(end_date__gte='{}-01'.format(datetime.datetime.now().year)) | Q(end_date__isnull=True) | Q(end_date=u''))
+
+
+class ProjectManager(models.Manager):
+    def get_queryset(self):
+        return ProjectQuerySet(self.model, using=self._db)
+
+    def latest_projects(self):
+        return self.get_queryset().latest_projects()
 
 
 class Project(Dateframeable, models.Model):
@@ -75,44 +92,38 @@ class Project(Dateframeable, models.Model):
         (1, 'active', _('Active')),
     )
 
-    name = models.CharField(_("name"), max_length=128, help_text=_("A project's name"))
-    identification_code = models.CharField(_("identification code"), max_length=5,
-                                           help_text=_("An alphanumeric identification code, max 5 chars"))
-    description = models.TextField(_("description"), help_text=_("An extensive description of the project"))
-    resources = models.TextField(_("resources"),
-                                 help_text=_("A non-structured list of linked resources: github, staging, IP, ..."))
-    customer = models.CharField(_("customer"), max_length=128, help_text=_("The identifier of the customer"))
+    name = models.CharField(_('name'), max_length=128, help_text=_("A project's name"))
+    identification_code = models.CharField(_('identification code'), max_length=5,
+                                           help_text=_('An alphanumeric identification code, max 5 chars'))
+    description = models.TextField(_('description'), help_text=_('An extensive description of the project'))
+    resources = models.TextField(_('resources'),
+                                 help_text=_('A non-structured list of linked resources: github, staging, IP, ...'))
+    customer = models.CharField(_('customer'), max_length=128, help_text=_('The identifier of the customer'))
 
     managers = models.ManyToManyField(Worker, related_name='manager_projects',
-                                      help_text=_("The manager(s) of this project"))
+                                      help_text=_('The manager(s) of this project'))
     workers = models.ManyToManyField(Worker, related_name='worker_projects',
-                                     help_text=_("The worker(s) of this project"))
+                                     help_text=_('The worker(s) of this project'))
     project_type = models.IntegerField(_('project type'), choices=TYPES, help_text=_(
-        "Whether the project is an ongoing activity or it has a start and an end date"))
+        'Whether the project is an ongoing activity or it has a start and an end date'))
     phase = models.IntegerField(_('phase'), choices=PHASES, null=True, blank=True,
-                                help_text=_("The status of advancement of the project"))
+                                help_text=_('The status of advancement of the project'))
     status = models.IntegerField(_('status'), choices=STATUS, null=True, blank=True,
-                                 help_text=_("Whether the project is active or closed"))
+                                 help_text=_('Whether the project is active or closed'))
 
     gantt_url = models.URLField(_('TeamGantt URL'), blank=True, null=True, 
-                                help_text=_("URL of the project on TeamGantt"))
+                                help_text=_('URL of the project on TeamGantt'))
     gdrive_url = models.URLField(_('GDrive URL'), blank=True, null=True, 
-                                 help_text=_("URL of the project on GDrive"))
+                                 help_text=_('URL of the project on GDrive'))
 
-    @staticmethod
-    def latest_projects():
-        """
-        Returns project that have no end date or the end date is in the current year
-        """
-        return Project.objects.\
-                filter(Q(end_date__gte='{}-01'.format(datetime.datetime.now().year)) | Q(end_date__isnull=True) | Q(end_date=u'') )
+    objects = ProjectManager()
 
     def __unicode__(self):
-        return u"{0} ({1})".format(self.name, self.identification_code)
+        return u'{} ({})'.format(self.name, self.identification_code)
 
     class Meta:
-        verbose_name = _("Project")
-        verbose_name_plural = _("Projects")
+        verbose_name = _('Project')
+        verbose_name_plural = _('Projects')
 
 
 class BaseActivity(models.Model):
@@ -131,63 +142,63 @@ class BaseActivity(models.Model):
         (11, 'research', _('Research')),
     )
 
-    project = models.ForeignKey(Project, verbose_name=_("project"))
-    activity_type = models.IntegerField(_("activity type"), choices=TYPES, null=True, blank=True,
+    project = models.ForeignKey(Project, verbose_name=_('project'))
+    activity_type = models.IntegerField(_('activity type'), choices=TYPES, null=True, blank=True,
                                         help_text=_("Select the type of activity. Don't be picky."))
-    description = models.CharField(_("description"), max_length=256,
-                                   help_text=_("A very brief description of the activity (max 256 chars)."),
+    description = models.CharField(_('description'), max_length=256,
+                                   help_text=_('A very brief description of the activity (max 256 chars).'),
                                    blank=True, null=True)
     hours = models.DecimalField(_('hours worked'), max_digits=3, decimal_places=1,
-                                help_text=_("Number of hours worked, can be a decimal"))
+                                help_text=_('Number of hours worked, can be a decimal'))
 
     def __unicode__(self):
-        return u"{0}".format(self.description)
+        return u'{}'.format(self.description)
 
     class Meta:
         abstract = True
 
 
 class Activity(BaseActivity):
-    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_activities')
-    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_activities')
-    activity_date = models.DateField(_("activity date"), help_text=_("Pick up the exact date of the activity."))
+    worker = models.ForeignKey(Worker, verbose_name=_('worker'), related_name='assigned_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_('owner'), related_name='own_activities')
+    activity_date = models.DateField(_('activity date'), help_text=_('Pick up the exact date of the activity.'))
 
     def __unicode__(self):
-        return u"{0} ({1}h)".format(self.description, self.hours)
+        return u'{} ({}h)'.format(self.description, self.hours)
 
     class Meta:
-        verbose_name = _("Activity")
-        verbose_name_plural = _("Activities")
+        verbose_name = _('Activity')
+        verbose_name_plural = _('Activities')
 
 
 class WeeklyActivity(BaseActivity):
-    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_weekly_activities')
-    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_weekly_activities')
-    week = models.CharField(_("week"), max_length=7, help_text=_("The week"))
+    worker = models.ForeignKey(Worker, verbose_name=_('worker'), related_name='assigned_weekly_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_('owner'), related_name='own_weekly_activities')
+    week = models.CharField(_('week'), max_length=7, help_text=_('The week'))
 
     def __unicode__(self):
-        return u"{0} ({1}h)".format(self.description, self.hours)
+        return u'{} ({}h)'.format(self.description, self.hours)
 
     class Meta:
-        verbose_name = _("Weekly activity")
-        verbose_name_plural = _("Weekly activities")
+        verbose_name = _('Weekly activity')
+        verbose_name_plural = _('Weekly activities')
 
 
 class RecurringActivity(BaseActivity):
-    worker = models.ForeignKey(Worker, verbose_name=_("worker"), related_name='assigned_recurring_activities')
-    owner = models.ForeignKey(Worker, verbose_name=_("owner"), related_name='own_recurring_activities')
-    start_date = models.DateField(_("start date"), null=False, blank=False, default=0,
-                                  help_text=_("When the activity started."))
-    end_date = models.DateField(_("end_date"), null=True, blank=True, help_text=_("When the activity will end."))
-    recurrences = recurrence.fields.RecurrenceField(_("recurrences"), blank=True, null=True)
+    worker = models.ForeignKey(Worker, verbose_name=_('worker'), related_name='assigned_recurring_activities')
+    owner = models.ForeignKey(Worker, verbose_name=_('owner'), related_name='own_recurring_activities')
+    start_date = models.DateField(_('start date'), null=False, blank=False, default=0,
+                                  help_text=_('When the activity started.'))
+    end_date = models.DateField(_('end_date'), null=True, blank=True, help_text=_('When the activity will end.'))
+    recurrences = recurrence.fields.RecurrenceField(_('recurrences'), blank=True, null=True)
 
     class Meta:
-        verbose_name = _("Recurring activity")
-        verbose_name_plural = _("Recurring activities")
+        verbose_name = _('Recurring activity')
+        verbose_name_plural = _('Recurring activities')
 
 
 class HoursDict(OrderedDict):
-    key_date_format = "%Y-%m-%d"
+    key_date_format = '%Y-%m-%d'
 
     def __init__(self, *args, **kwargs):
         """
@@ -263,7 +274,7 @@ class HoursDict(OrderedDict):
         end_date = Week.withdate(datetime.date.today()).monday()
         if only_latest_year:
             # starts from 1 Jan if breakdown on months, else on the monday of the week of the 1st Jan
-            if breakdown_type == "W":
+            if breakdown_type == 'W':
                 start_day = Week.withdate(datetime.datetime.strptime('{}-01-01'.format(datetime.date.today().year),
                                                                      self.key_date_format)).monday()
             else:
@@ -280,11 +291,12 @@ class HoursDict(OrderedDict):
 
         return sd
 
-    def date_generator(self, breakdown_type, start_date, end_date):
+    @staticmethod
+    def date_generator(breakdown_type, start_date, end_date):
         from_date = start_date
         while from_date <= end_date:
             yield from_date
-            if breakdown_type == "W":
+            if breakdown_type == 'W':
                 from_date = from_date + datetime.timedelta(days=7)
             else:
                 def add_one_month(dt0):
@@ -294,7 +306,6 @@ class HoursDict(OrderedDict):
                     return dt3
 
                 from_date = add_one_month(from_date)
-
 
     def add_simple_activities(self, activities, worker_username, project_code, breakdown_type='M'):
         """
@@ -363,7 +374,7 @@ class HoursDict(OrderedDict):
                 # I choose to assign wednesday's month
                 # as the week'smonth (ad arbitrium)
                 # when rearranging into monthly breakdowns
-                month = Week.fromstring(aw.week).wednesday().strftime("%Y-%m-01")
+                month = Week.fromstring(aw.week).wednesday().strftime('%Y-%m-01')
                 if month not in self[wid][pid]:
                     self[wid][pid][month] = 0
                 self[wid][pid][month] += aw.hours
@@ -428,7 +439,7 @@ class HoursDict(OrderedDict):
                 # generate all steps, month by month, with pre- and after- intervals
                 d_months = list(
                     rrule(
-                        MONTHLY, dtstart=parse(from_date.strftime("%Y-%m-01"))
+                        MONTHLY, dtstart=parse(from_date.strftime('%Y-%m-01'))
                     ).between(from_date, to_date)
                 )
 
@@ -444,7 +455,7 @@ class HoursDict(OrderedDict):
                 # for each month interval, the hours
                 # worked on all activities are summed
                 for i, d_month in enumerate(d_months[:-1]):
-                    month = d_month.strftime("%Y-%m-01")
+                    month = d_month.strftime('%Y-%m-01')
                     for ar in a:
                         a_start_date = datetime.datetime(*ar.start_date.timetuple()[:-4])
                         a_end_date = datetime.datetime(*ar.end_date.timetuple()[:-4])
