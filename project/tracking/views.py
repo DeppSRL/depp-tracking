@@ -69,6 +69,7 @@ class CSVView(View):
     breakdown_type = None
     period_type = None
     only_latest_year = None
+    hours = None
     breakdowns = []
 
     def get(self, request, *args, **kwargs):
@@ -88,12 +89,13 @@ class CSVView(View):
         raise NotImplementedError
 
     def get_first_row(self):
-        if self.breakdown_type == 'W':
-            first_row = self.breakdowns[:]
-        else:
+        first_row = self.breakdowns[:]
+
+        if self.breakdown_type != 'W':
             locale.setlocale(locale.LC_ALL, 'it_IT')
-            first_row = map(lambda x: parse(x).strftime('%B %Y'), self.breakdowns[:])
+            first_row = map(lambda x: parse(x).strftime('%B %Y'), first_row)
             locale.setlocale(locale.LC_ALL, '')
+
         first_row.insert(0, u'')
 
         return first_row
@@ -102,23 +104,23 @@ class CSVView(View):
         raise NotImplementedError
 
     def get_request_params(self):
-        self.breakdown_type = self.kwargs.get('breakdown_type', None)
-        self.period_type = self.kwargs.get('period_type', None)
+        self.breakdown_type = self.kwargs.get('breakdown_type')
+        self.period_type = self.kwargs.get('period_type')
 
         self.only_latest_year = True
         if self.period_type == 'all':
             self.only_latest_year = False
 
+        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
+
 
 class WorkerCSVView(CSVView):
-    hours = None
     worker = None
     projects = None
 
     def get(self, request, *args, **kwargs):
         self.get_request_params()
-        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
-        self.worker = self.kwargs.get('worker', '')
+        self.worker = self.kwargs.get('worker')
 
         if self.worker not in self.hours.keys():
             raise Http404
@@ -138,24 +140,20 @@ class WorkerCSVView(CSVView):
             )
         )
 
-        writer = csvkit.writer(response)
-        writer.writerow(self.get_first_row())
-
-        self.breakdowns.insert(0, u'')
-
         current_projects_codes = self.projects = Project.objects.latest_projects(). \
             order_by('identification_code').values_list('identification_code', flat=True)
 
-        for p_code, data in worker_hours.items():
+        writer = csvkit.writer(response)
+        writer.writerow(self.get_first_row())
+
+        for project, data in worker_hours.items():
             # if only latest year show hours for latest projects
-            if self.only_latest_year and p_code not in current_projects_codes:
+            if self.only_latest_year and project not in current_projects_codes:
                 continue
 
-            row = []
+            row = [project]
             for bd in self.breakdowns:
-                if bd == u'':
-                    row.append(p_code)
-                elif bd in data:
+                if bd in data:
                     row.append(data[bd])
                 else:
                     row.append(0)
@@ -164,15 +162,13 @@ class WorkerCSVView(CSVView):
 
 
 class ProjectCSVView(CSVView):
-    hours = None
     project = None
     projects = None
     projects_hours = None
 
     def get(self, request, *args, **kwargs):
         self.get_request_params()
-        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
-        self.project = self.kwargs.get('project', '')
+        self.project = self.kwargs.get('project')
         self.projects = sorted(
             list(
                 set(
@@ -208,14 +204,10 @@ class ProjectCSVView(CSVView):
         writer = csvkit.writer(response)
         writer.writerow(self.get_first_row())
 
-        self.breakdowns.insert(0, u'')
-
-        for w_login, data in project_hours.items():
-            row = []
+        for worker, data in project_hours.items():
+            row = [worker]
             for bd in self.breakdowns:
-                if bd == u'':
-                    row.append(w_login)
-                elif bd in data:
+                if bd in data:
                     row.append(data[bd])
                 else:
                     row.append(0)
@@ -224,20 +216,18 @@ class ProjectCSVView(CSVView):
 
 
 class OverviewCSVView(CSVView):
-    hours = None
     workers = None
     projects = None
     projects_hours = None
 
     def get(self, request, *args, **kwargs):
-        # self.period_type = self.kwargs.get('period_type', None)
+        # self.period_type = self.kwargs.get('period_type')
 
         # self.only_latest_year = True
         # if self.period_type == 'all':
         #     self.only_latest_year = False
 
         self.get_request_params()
-        self.hours = HoursDict(breakdown_type=self.breakdown_type, only_latest_year=self.only_latest_year)
 
         return super(OverviewCSVView, self).get(request, *args, **kwargs)
 
@@ -248,17 +238,14 @@ class OverviewCSVView(CSVView):
     #     return ''
 
     def get_first_row(self):
-        first_row = self.hours.keys()
+        first_row = self.workers[:]
         first_row.insert(0, u'')
 
         return first_row
 
     def write_csv(self, response):
-        writer = csvkit.writer(response)
-        writer.writerow(self.get_first_row())
-
-        self.workers = self.hours.keys()
-        self.workers.insert(0, u'')
+        current_workers = [w.user.username for w in Worker.objects.exclude(worker_type=Worker.TYPES.associate).select_related('user')]
+        self.workers = [k for k in self.hours.keys() if k in current_workers]
 
         # if only latest year -> the csv will have only rows for active project
         if self.only_latest_year:
@@ -275,13 +262,14 @@ class OverviewCSVView(CSVView):
             ) for p in self.projects]
         )
 
-        for p_code, data in self.projects_hours.items():
-            row = []
-            for w_login in self.workers:
-                if w_login == u'':
-                    row.append(p_code)
-                elif w_login in data:
-                    row.append(sum(data[w_login].values()))
+        writer = csvkit.writer(response)
+        writer.writerow(self.get_first_row())
+
+        for project, data in self.projects_hours.items():
+            row = [project]
+            for worker in self.workers:
+                if worker in data:
+                    row.append(sum(data[worker].values()))
                 else:
                     row.append(0)
 
