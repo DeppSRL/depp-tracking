@@ -39,9 +39,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 ########## END EMAIL CONFIGURATION
 
 ########## DATABASE CONFIGURATION
-DATABASES = {
-    'default': env.db('DB_DEFAULT_URL'),
-}
+# DATABASES = {
+#     'default': env.db('DB_DEFAULT_URL'),
+# }
 ########## END DATABASE CONFIGURATION
 
 
