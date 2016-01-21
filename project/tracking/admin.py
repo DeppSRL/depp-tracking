@@ -9,14 +9,14 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 import locale
 from isoweek import Week
-from .models import Project, Worker, Activity, RecurringActivity, WeeklyActivity
+from .models import Project, Worker, Activity, RecurringActivity, WeeklyActivity, WorkerContract
 
 __author__ = 'guglielmo'
 
 
 class InitialFieldsMixin(object):
     """
-    Grants the possibility to set inizial values to form fields
+    Grants the possibility to set initial values to form fields
     """
 
     def get_form(self, request, obj=None, **kwargs):
@@ -54,63 +54,70 @@ class ProjectAdminForm(forms.ModelForm):
         }
 
 
+class WorkerContractInline(admin.StackedInline):
+    model = WorkerContract
+    extra = 0
+
+
 class WorkerAdmin(admin.ModelAdmin):
     def report_w_latest_url(self, obj):
         url = reverse('worker_csv', args=['W', obj.user.username, 'latest'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     def report_m_latest_url(self, obj):
         url = reverse('worker_csv', args=['M', obj.user.username, 'latest'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
 
     def report_w_all_url(self, obj):
         url = reverse('worker_csv', args=['W', obj.user.username, 'all'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     def report_m_all_url(self, obj):
         url = reverse('worker_csv', args=['M', obj.user.username, 'all'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     report_w_all_url.allow_tags = True
     report_m_all_url.allow_tags = True
     report_w_latest_url.allow_tags = True
     report_m_latest_url.allow_tags = True
 
-    report_w_all_url.short_description = "Report settimanale globale"
-    report_m_all_url.short_description = "Report mensile globale"
-    report_w_latest_url.short_description = "Report settimanale anno corrente"
-    report_m_latest_url.short_description = "Report mensile anno corrente"
+    report_w_all_url.short_description = 'Report settimanale globale'
+    report_m_all_url.short_description = 'Report mensile globale'
+    report_w_latest_url.short_description = 'Report settimanale anno corrente'
+    report_m_latest_url.short_description = 'Report mensile anno corrente'
 
     list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
+
+    inlines = [WorkerContractInline]
 
 
 class ProjectAdmin(admin.ModelAdmin):
     def report_w_latest_url(self, obj):
         url = reverse('project_csv', args=['W', obj.identification_code, 'latest'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     def report_m_latest_url(self, obj):
         url = reverse('project_csv', args=['M', obj.identification_code, 'latest'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     def report_w_all_url(self, obj):
         url = reverse('project_csv', args=['W', obj.identification_code, 'all'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     def report_m_all_url(self, obj):
         url = reverse('project_csv', args=['M', obj.identification_code, 'all'])
-        return u'<a href="{0}">scarica</a>'.format(url)
+        return u'<a href="{}">scarica</a>'.format(url)
 
     report_w_all_url.allow_tags = True
     report_m_all_url.allow_tags = True
     report_w_latest_url.allow_tags = True
     report_m_latest_url.allow_tags = True
 
-    report_w_all_url.short_description = "Report settimanale globale"
-    report_m_all_url.short_description = "Report mensile globale"
-    report_w_latest_url.short_description = "Report settimanale anno corrente"
-    report_m_latest_url.short_description = "Report mensile anno corrente"
+    report_w_all_url.short_description = 'Report settimanale globale'
+    report_m_all_url.short_description = 'Report mensile globale'
+    report_w_latest_url.short_description = 'Report settimanale anno corrente'
+    report_m_latest_url.short_description = 'Report mensile anno corrente'
 
     search_fields = ['description', 'identification_code']
     list_filter = ('phase', 'status', 'project_type')
@@ -225,12 +232,11 @@ class RecurringActivityAdmin(BaseActivityAdmin):
 
 class WeeklyAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        locale.setlocale(locale.LC_ALL, "{0}.UTF-8".format(settings.LANGUAGE_CODE.replace("-", "_")))
-        from_word = _("from")
+        locale.setlocale(locale.LC_ALL, '{}.UTF-8'.format(settings.LANGUAGE_CODE.replace('-', '_')))
         w = Week.thisweek()
-        WEEKS = [(w.isoformat(), _("this week"))] + [
-            ((w - i).isoformat(), _("from") + (w - i).monday().strftime(" %d %B")) for i in
-            range(1, settings.PAST_WEEKS_IN_REPORTS)]
+        WEEKS = [(w.isoformat(), _('this week'))] + [
+            ((w - i).isoformat(), _('from') + (w - i).monday().strftime(' %d %B')) for i in range(1, settings.PAST_WEEKS_IN_REPORTS)
+        ]
         super(WeeklyAdminForm, self).__init__(*args, **kwargs)
 
         self.fields['week'].widget = forms.Select(choices=WEEKS)

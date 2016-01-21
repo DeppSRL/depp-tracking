@@ -360,10 +360,6 @@ msgid "When the activity started."
 msgstr "Quando l'attività inizia"
 
 #: models.py:151
-msgid "end_date"
-msgstr "data finale"
-
-#: models.py:151
 msgid "When the activity will end."
 msgstr "Quando l'attività finisce"
 
@@ -383,6 +379,33 @@ msgstr "Attività ricorrenti"
 #: templates/admin/base_site.html.py:7
 msgid "DEPP Activity tracking system"
 msgstr "Sistema di tracciamento attività di DEPP"
+
+#: models.py
+msgid "contract"
+msgstr "contratto"
+
+#: models.py
+msgid "Contract"
+msgstr "Contratto"
+
+#: models.py
+msgid "Contracts"
+msgstr "Contratti"
+
+#: models.py
+msgid "When the contract started."
+msgstr "Quando il contratto inizia"
+
+#: models.py
+msgid "When the contract will end."
+msgstr "Quando il contratto finisce"
+
+#: models.py
+msgid "hourly cost"
+msgstr "costo orario"
+
+msgid "ongoing"
+msgstr "in corso"
 
 #~ msgid "back to site"
 #~ msgstr "torna al sito"

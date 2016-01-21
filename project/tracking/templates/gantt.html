@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends 'admin/base.html' %}
 {% load i18n %}
 
 {% block title %}Teamgantt{% endblock %}
@@ -7,9 +7,13 @@
     <h1 id="site-name">Teamgantt</h1>
 {% endblock %}
 
+{% block nav-global %}
+    <div style="margin: 0.35em 0.75em"><a href="{% url 'reports' %}">Elenco dei report</a> | <span>Diagramma di Gantt</span></div>
+{% endblock %}
+
 {% block content %}
-<div style='width:100%; margin:0 auto; background:#eeeeee; border:1px #cbcbcb solid;'>
-<iframe src='https://teamgantt.com/gantt/schedule/?ids=365582,217719,397901,323948,270528,324293,217703,332929,224178&public_keys=FuBw1EjoujUJ,RgR4vMQ7jbU4,ch9T3PbEEQgS,Uf9gExUnXcAx,jjUCTrIwgr5o,fbI3n1Yu1hJm,ldo1vIH9boVK,P0tSre6nXz1v,jU0dTUi75XS2&zoom=w80&font_size=12&estimated_hours=0&assigned_resources=0&percent_complete=1&documents=0&comments=0&col_width=255&menu_view=0&resource_filter=1&name_in_bar=0&name_next_to_bar=0&resource_names=1' style='width:100%; height:600px; border-bottom:1px #cbcbcb solid;' frameborder='0';></iframe>
-<a href='http://teamgantt.com' target='_blank' style='display:block; text-align:right; background:url(https://teamgantt.com/images/powered_by_teamgantt.png) right center no-repeat; height:0; padding-top:20px; overflow:hidden; padding-right:1px;'>Online Gantt Chart</a>
-</div>
+    <div style="width: 100%; margin: 0 auto; background: #eeeeee; border: 1px solid #cbcbcb">
+        <iframe src="https://teamgantt.com/gantt/schedule/?ids=365582,217719,397901,323948,270528,324293,217703,332929,224178&public_keys=FuBw1EjoujUJ,RgR4vMQ7jbU4,ch9T3PbEEQgS,Uf9gExUnXcAx,jjUCTrIwgr5o,fbI3n1Yu1hJm,ldo1vIH9boVK,P0tSre6nXz1v,jU0dTUi75XS2&zoom=w80&font_size=12&estimated_hours=0&assigned_resources=0&percent_complete=1&documents=0&comments=0&col_width=255&menu_view=0&resource_filter=1&name_in_bar=0&name_next_to_bar=0&resource_names=1" style="width: 100%; height: 600px; border-bottom: 1px solid #cbcbcb" frameborder="0"></iframe>
+        <a href="http://teamgantt.com" target="_blank" style="display: block; text-align: right; background: url(https://teamgantt.com/images/powered_by_teamgantt.png) right center no-repeat; height: 0; padding-top: 20px; overflow: hidden; padding-right: 1px">Online Gantt Chart</a>
+    </div>
 {% endblock content %}

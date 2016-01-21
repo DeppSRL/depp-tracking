@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends 'admin/base.html' %}
 {% load i18n %}
 
 {% block title %}Elenco rapporti CSV{% endblock %}
@@ -7,14 +7,18 @@
     <h1 id="site-name">{% trans 'DEPP Activity tracking system' %}</h1>
 {% endblock %}
 
+{% block nav-global %}
+    <div style="margin: 0.35em 0.75em"><span>Elenco dei report</span> | <a href="{% url 'gantt' %}">Diagramma di Gantt</a></div>
+{% endblock %}
+
 {% block content %}
     <h1>Sito di management delle attività</h1>
-    <p>
-    In questa pagina è possibile accedere a tutti i report CSV.
-    </p>
+    <p>In questa pagina è possibile accedere a tutti i report CSV.</p>
+
     <ul>
-        <li><a href="{% url 'overview_csv' 'latest' %}"><strong>Report riassuntivo anno corrente</strong></a></li>
+        {% for year in years %}
+            <li><a href="{% url 'overview_csv' year %}"><strong>Report riassuntivo anno {{ year }}</strong></a></li>
+        {% endfor %}
         <li><a href="{% url 'overview_csv' 'all' %}"><strong>Report riassuntivo globale</strong></a></li>
     </ul>
-
 {% endblock content %}

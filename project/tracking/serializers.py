@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from .models import Worker, Project, Activity
 
+
 __author__ = 'guglielmo'
+
 
 class DynamicFieldsHyperlinkedModelSerializer(serializers.HyperlinkedModelSerializer):
     """
@@ -26,25 +29,26 @@ class DynamicFieldsHyperlinkedModelSerializer(serializers.HyperlinkedModelSerial
 
 
 class UserSerializer(DynamicFieldsHyperlinkedModelSerializer):
-  class Meta:
-    model = User
-    fields = (
-        'url', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'groups', 'worker'
-    )
+    class Meta:
+        model = User
+        fields = (
+            'url', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'groups', 'worker'
+        )
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
-  class Meta:
-    model = Group
-    fields = ('url', 'name',)
+    class Meta:
+        model = Group
+        fields = ('url', 'name',)
 
 
 class WorkerSerializer(DynamicFieldsHyperlinkedModelSerializer):
     user = UserSerializer(
-        fields = (
+        fields=(
             'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'groups',
         )
     )
+
     class Meta:
         model = Worker
         fields = ('url', 'user')

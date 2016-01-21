@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -7,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.fields import AutoCreatedField, AutoLastModifiedField
 from autoslug import AutoSlugField
 from datetime import datetime
+
 
 __author__ = 'guglielmo'
 
@@ -44,19 +46,19 @@ def validate_partial_date(value):
 class Dateframeable(models.Model):
     """
     An abstract base class model that provides a start and an end dates to the class.
-    Uncomplete dates can be used. The validation pattern is: "^[0-9]{4}(-[0-9]{2}){0,2}$"
+    Uncomplete dates can be used. The validation pattern is: '^[0-9]{4}(-[0-9]{2}){0,2}$'
     """
-    partial_date_validator = RegexValidator(regex="^[0-9]{4}(-[0-9]{2}){0,2}$", message="Date has wrong format")
+    partial_date_validator = RegexValidator(regex='^[0-9]{4}(-[0-9]{2}){0,2}$', message='Date has wrong format')
 
     start_date = models.CharField(
-        _("start date"), max_length=10, blank=True, null=True,
+        _('start date'), max_length=10, blank=True, null=True,
         validators=[partial_date_validator, validate_partial_date],
-        help_text=_("The date when the validity of the item starts. Partial dates may be entered (2014-06)."),
+        help_text=_('The date when the validity of the item starts. Partial dates may be entered (2014-06).'),
     )
     end_date = models.CharField(
-        _("end date"), max_length=10, blank=True, null=True,
+        _('end date'), max_length=10, blank=True, null=True,
         validators=[partial_date_validator, validate_partial_date],
-        help_text=_("The date when the validity of the item ends. Partial dates may be entered (2014-06).")
+        help_text=_('The date when the validity of the item ends. Partial dates may be entered (2014-06).')
     )
 
     class Meta:
@@ -98,6 +100,4 @@ class Permalinkable(models.Model):
     @models.permalink
     def get_absolute_url(self):
         url_kwargs = self.get_url_kwargs(slug=self.slug)
-        return (self.url_name, (), url_kwargs)
-
-
+        return self.url_name, (), url_kwargs
