@@ -72,7 +72,7 @@ msgstr "Risorsa esterna"
 
 #: models.py:26
 msgid "Fully employee"
-msgstr "Tempo pieno"
+msgstr "Tempo indeterminato"
 
 #: models.py:27
 msgid "Collaboration to a project"

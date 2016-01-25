@@ -35,16 +35,8 @@ class Worker(models.Model):
         (2, 'external', _('External resource')),
     )
 
-    CONTRACTS = Choices(
-        (0, 'indeterminato', _('Fully employee')),
-        (1, 'collaboratore', _('Collaboration to a project')),
-        (1, 'partitaiva', _('External consultancy')),
-    )
-
     user = models.OneToOneField(User)
     worker_type = models.IntegerField(_('worker type'), choices=TYPES, blank=True, null=True, help_text=_('The type of worker'))
-    contract_type = models.IntegerField(_('contract type'), choices=CONTRACTS, blank=True, null=True, help_text=_('The type of contract between the worker and the company'))
-    time_perc = models.IntegerField(_('time percentage'), blank=True, null=True, help_text=_('Time percentage (100% = full time)'))
 
     objects = WorkerManager()
 
@@ -78,9 +70,17 @@ class Worker(models.Model):
 
 
 class WorkerContract(models.Model):
+    CONTRACT_TYPES = Choices(
+        (0, 'indeterminato', _('Fully employee')),
+        (1, 'collaboratore', _('Collaboration to a project')),
+        (1, 'partitaiva', _('External consultancy')),
+    )
+
     worker = models.ForeignKey(Worker, verbose_name=_('worker'), related_name='contracts')
+    contract_type = models.IntegerField(_('contract type'), choices=CONTRACT_TYPES, blank=True, null=True, help_text=_('The type of contract between the worker and the company'))
     start_date = models.DateField(_('start date'), help_text=_('When the contract started.'))
     end_date = models.DateField(_('end date'), null=True, blank=True, help_text=_('When the contract will end.'))
+    time_perc = models.IntegerField(_('time percentage'), blank=True, null=True, help_text=_('Time percentage (100% = full time)'))
     hourly_cost = models.DecimalField(_('hourly cost'), max_digits=6, decimal_places=2)
 
     def __unicode__(self):
