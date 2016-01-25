@@ -73,7 +73,7 @@ class WorkerContract(models.Model):
     CONTRACT_TYPES = Choices(
         (0, 'indeterminato', _('Fully employee')),
         (1, 'collaboratore', _('Collaboration to a project')),
-        (1, 'partitaiva', _('External consultancy')),
+        (2, 'partitaiva', _('External consultancy')),
     )
 
     worker = models.ForeignKey(Worker, verbose_name=_('worker'), related_name='contracts')
