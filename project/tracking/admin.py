@@ -68,7 +68,6 @@ class WorkerAdmin(admin.ModelAdmin):
         url = reverse('worker_csv', args=['M', obj.user.username, 'latest'])
         return u'<a href="{}">scarica</a>'.format(url)
 
-
     def report_w_all_url(self, obj):
         url = reverse('worker_csv', args=['W', obj.user.username, 'all'])
         return u'<a href="{}">scarica</a>'.format(url)
@@ -124,7 +123,6 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'report_w_latest_url', 'report_m_latest_url', 'report_w_all_url', 'report_m_all_url')
     form = ProjectAdminForm
 
-
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         """
         Managers selections is filtered
@@ -177,7 +175,6 @@ class BaseActivityAdmin(admin.ModelAdmin):
                 lf.remove('worker')
         return lf
 
-
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'owner' or db_field.name == 'worker':
             try:
@@ -197,9 +194,7 @@ class BaseActivityAdmin(admin.ModelAdmin):
 
         # employees can only add their own activities
         if db_field.name == 'worker':
-            if not request.user.worker.is_manager() \
-                and not request.user.worker.is_project_manager() \
-                and not request.user.is_superuser:
+            if not request.user.worker.is_manager() and not request.user.worker.is_project_manager() and not request.user.is_superuser:
                 field.queryset = field.queryset.filter(id=request.user.worker.id).distinct()
 
         # employees can only see projects they work in or manage
@@ -214,6 +209,13 @@ class BaseActivityAdmin(admin.ModelAdmin):
         return field
 
 
+class ActivityAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ActivityAdminForm, self).__init__(*args, **kwargs)
+
+        self.fields['project'].queryset = self.fields['project'].queryset.filter(Q(end_date='') | Q(end_date__isnull=True) | Q(pk=self.instance.project_id))
+
+
 class ActivityAdmin(InitialFieldsMixin, BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'activity_date']
     # raw_id_fields = ['project',]
@@ -223,23 +225,27 @@ class ActivityAdmin(InitialFieldsMixin, BaseActivityAdmin):
     # sets initial value for activity date to current date
     initial = {'activity_date': lambda self, request, obj, **kwargs: datetime.datetime.today()}
 
+    form = ActivityAdminForm
+
 
 class RecurringActivityAdmin(BaseActivityAdmin):
     list_display = ['__unicode__', 'worker', 'project', 'recurrences']
     list_filter = ['worker', 'project', 'activity_type', 'project__status']
     ordering = ['-end_date', '-start_date']
 
+    form = ActivityAdminForm
 
-class WeeklyAdminForm(forms.ModelForm):
+
+class WeeklyActivityAdminForm(ActivityAdminForm):
     def __init__(self, *args, **kwargs):
         locale.setlocale(locale.LC_ALL, '{}.UTF-8'.format(settings.LANGUAGE_CODE.replace('-', '_')))
         w = Week.thisweek()
-        WEEKS = [(w.isoformat(), _('this week'))] + [
+        weeks = [(w.isoformat(), _('this week'))] + [
             ((w - i).isoformat(), _('from') + (w - i).monday().strftime(' %d %B')) for i in range(1, settings.PAST_WEEKS_IN_REPORTS)
         ]
-        super(WeeklyAdminForm, self).__init__(*args, **kwargs)
+        super(WeeklyActivityAdminForm, self).__init__(*args, **kwargs)
 
-        self.fields['week'].widget = forms.Select(choices=WEEKS)
+        self.fields['week'].widget = forms.Select(choices=weeks)
 
     class Meta:
         model = WeeklyActivity
@@ -250,7 +256,7 @@ class WeeklyActivityAdmin(BaseActivityAdmin):
     list_filter = ['worker', 'project', 'activity_type', 'project__status']
     ordering = ['-week']
 
-    form = WeeklyAdminForm
+    form = WeeklyActivityAdminForm
 
 
 admin.site.register(Worker, WorkerAdmin)
