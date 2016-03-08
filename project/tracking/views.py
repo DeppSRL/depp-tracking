@@ -146,6 +146,10 @@ class WorkerCSVView(CSVView):
 
         breakdowns = sorted(list(set(val for sublist in [m.keys() for m in self.hours[self.worker].values()] for val in sublist)))
 
+        worker_startdate = worker.contracts.first().start_date
+        worker_enddate = worker.contracts.last().end_date
+        breakdowns = filter(lambda x: parse(x).date() >= worker_startdate and (worker_enddate is None or parse(x).date() <= worker_enddate), breakdowns)
+
         writer = csvkit.writer(response)
         writer.writerow(['codice progetto', 'nome progetto'] + self.format_breakdowns(breakdowns) + ['totale ore', 'totale giorni', 'costo'])
 
